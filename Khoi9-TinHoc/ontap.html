@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberQuest: Thử Thách Tin Học 9 ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981; 
+            --primary-dark: #059669;
+            --secondary: #84cc16; 
+            --success: #22c55e;
+            --danger: #f43f5e;
+            --warning: #eab308;
+            --bg: #f0fdf4; 
+            --text: #064e3b; 
+            --white: #ffffff;
+            --border: #bbf7d0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Lexend', sans-serif; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .container { max-width: 750px; margin: 0 auto; padding: 20px; display: none; }
+        .card { 
+            background: var(--white); 
+            border-radius: 30px; 
+            padding: 30px; 
+            box-shadow: 0 12px 0px var(--border); 
+            border: 3px solid var(--border);
+            position: relative;
+        }
+
+        /* HUD */
+        .hud { position: fixed; top: 15px; right: 15px; display: flex; gap: 10px; z-index: 100; }
+        .hud-item { 
+            background: var(--white); padding: 10px 20px; border-radius: 50px; font-weight: 800; 
+            box-shadow: 0 4px 0px var(--border); border: 2px solid var(--border);
+            display: flex; align-items: center; gap: 8px; color: var(--primary-dark);
+        }
+
+        /* Progress Bar */
+        .progress-container { height: 14px; background: #dcfce7; border-radius: 10px; overflow: hidden; margin-bottom: 25px; border: 2px solid var(--border); }
+        .progress-bar { 
+            height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); 
+            width: 0%; transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-radius: 10px;
+        }
+
+        /* Question UI */
+        .question-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; line-height: 1.5; color: #065f46; }
+        .options-grid { display: grid; gap: 12px; }
+        .option-btn {
+            background: #fff; border: 2px solid var(--border); padding: 16px; border-radius: 18px;
+            text-align: left; cursor: pointer; transition: all 0.2s; font-size: 1rem; font-weight: 600;
+            color: var(--text); display: flex; align-items: center; gap: 12px;
+        }
+        .option-btn:hover { border-color: var(--primary); background: #f0fdf4; transform: scale(1.02); }
+        .option-btn.correct-flash { background: var(--success) !important; color: white !important; border-color: var(--primary-dark) !important; }
+        
+        /* Fill-in-the-blank */
+        .fill-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px 0; }
+        .char-input {
+            width: 45px; height: 55px; border: 3px solid var(--border); border-radius: 12px;
+            text-align: center; font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);
+            background: #fff; outline: none; transition: 0.2s; text-transform: uppercase;
+        }
+        .char-input:focus { border-color: var(--primary); background: #f0fdf4; transform: translateY(-3px); }
+        .char-space { width: 20px; }
+
+        /* Drag & Drop */
+        .sortable-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .sort-item {
+            padding: 15px; background: #fff; border: 2px dashed var(--primary); border-radius: 15px;
+            cursor: grab; display: flex; align-items: center; gap: 10px; font-weight: 600; transition: 0.2s;
+        }
+
+        /* Classification UI */
+        .classify-container { display: flex; gap: 15px; margin-top: 20px; }
+        .classify-zone { 
+            flex: 1; min-height: 120px; background: #f9fafb; border: 2px solid var(--border); 
+            border-radius: 20px; padding: 15px; text-align: center; transition: 0.3s;
+        }
+        .classify-item { 
+            display: inline-block; padding: 10px 15px; background: var(--primary); color: white; 
+            border-radius: 12px; margin: 5px; cursor: pointer; font-size: 0.85rem; font-weight: 700;
+            box-shadow: 0 3px 0 var(--primary-dark);
+        }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(6, 78, 59, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); }
+        .modal-card { 
+            background: white; padding: 35px; border-radius: 35px; max-width: 500px; width: 90%; 
+            text-align: center; border: 5px solid var(--danger); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .correct-box { background: #f0fdf4; border: 2px dashed var(--primary); padding: 15px; border-radius: 15px; margin: 15px 0; font-weight: 800; color: var(--primary-dark); }
+        .exp-box { background: #fffbeb; padding: 15px; border-radius: 15px; text-align: left; font-size: 0.9rem; color: #92400e; line-height: 1.5; }
+
+        .btn {
+            background: var(--primary); color: white; border: none; padding: 16px; border-radius: 20px;
+            font-weight: 800; cursor: pointer; width: 100%; box-shadow: 0 6px 0px var(--primary-dark);
+            transition: 0.2s; font-size: 1.1rem;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0px var(--primary-dark); }
+
+        .map-node { 
+            background: white; padding: 25px; border-radius: 30px; border: 3px solid var(--border); 
+            cursor: pointer; text-align: center; transition: 0.3s; box-shadow: 0 10px 0px var(--border);
+            position: relative;
+        }
+        .map-node.active:hover { transform: translateY(-8px); border-color: var(--primary); background: #f0fdf4; }
+        .map-node.locked { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+        .lock-icon { position: absolute; top: 10px; right: 10px; font-size: 1.2rem; }
+        
+        input[type="text"].auth-input {
+            width: 100%; padding: 18px; border-radius: 18px; border: 3px solid var(--border);
+            font-size: 1.1rem; text-align: center; outline: none; transition: 0.3s; color: var(--primary-dark);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud" id="game-hud" style="display: none;">
+        <div class="hud-item">⭐ <span id="hud-name"></span></div>
+        <div class="hud-item">💎 <span id="hud-score">0</span> XP</div>
+    </div>
+
+    <!-- Auth -->
+    <div id="auth-screen" class="container" style="display: block; margin-top: 10vh;">
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🎮</div>
+            <h1 style="margin-bottom: 5px; color: var(--primary-dark); font-size: 2rem;">CYBER QUEST 9.0</h1>
+            <p style="margin-bottom: 30px; font-weight: 600; color: #666;">Chinh phục Tin học cực chill cùng chúng mình! ✨</p>
+            <input type="text" id="p-name" class="auth-input" placeholder="Điền tên của bạn..." autocomplete="off">
+            <button class="btn" style="margin-top: 20px;" onclick="startGame()">KHÁM PHÁ NGAY 🚀</button>
+        </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map-screen" class="container">
+        <h2 style="margin-bottom: 25px; text-align: center; font-size: 1.8rem;">Lộ Trình Giải Đố 🗺️</h2>
+        <p style="text-align: center; margin-bottom: 20px; font-weight: 600; color: var(--primary-dark);">Vượt qua 70% số câu mỗi ải để mở khóa ải tiếp theo nhé!</p>
+        <div id="map-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px;"></div>
+    </div>
+
+    <!-- Quiz -->
+    <div id="quiz-screen" class="container">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+                <span id="level-title" style="font-weight: 800; color: var(--primary-dark); font-size: 1.1rem;"></span>
+                <span id="q-count" style="font-weight: 800; background: #dcfce7; padding: 5px 12px; border-radius: 10px; font-size: 0.9rem;"></span>
+            </div>
+            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
+            <div id="quiz-content"></div>
+            <div id="quiz-action" style="margin-top: 25px; display: none;">
+                <button class="btn" id="check-btn" onclick="checkComplexAnswer()">KIỂM TRA ĐÁP ÁN ✅</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div id="modal-icon" style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+            <h2 id="modal-title" style="color: var(--danger); margin-bottom: 10px;">Ồ! Cần xem lại rồi...</h2>
+            <div id="modal-correct-ans" class="correct-box"></div>
+            <div id="modal-exp" class="exp-box"></div>
+            <button class="btn" id="modal-btn" style="margin-top: 25px;" onclick="closeFeedback()">TIẾP TỤC 💪</button>
+        </div>
+    </div>
+
+    <script>
+        const removeAccents = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+        function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+        // Helper to fill up questions
+        function createQuestions(count, base) {
+            let arr = [...base];
+            while(arr.length < count) {
+                arr.push({ 
+                    type: "mcq", 
+                    q: `Câu hỏi ôn tập ${arr.length + 1}: Để tính tổng các giá trị trong Excel, ta dùng hàm?`, 
+                    options: ["SUM", "AVERAGE", "MIN", "MAX"], 
+                    correct: 0, 
+                    exp: "Hàm SUM là hàm cơ bản nhất để cộng các con số lại với nhau nè!" 
+                });
+            }
+            return arr.slice(0, count);
+        }
+
+        const BASE_Q1 = [
+            { type: "mcq", q: "Bước đầu tiên trong quy trình giải bài toán trên máy tính là gì?", options: ["Xác định bài toán", "Viết chương trình", "Xây dựng thuật toán"], correct: 0, exp: "Xác định Input/Output là quan trọng nhất!" },
+            { type: "fill", q: "Sau khi xác định bài toán, chúng ta cần xây dựng _______.", correct: "thuật toán", exp: "Thuật toán là các bước để giải quyết vấn đề." },
+            { type: "sort", q: "Sắp xếp đúng quy trình giải bài toán:", items: ["Viết chương trình", "Xây dựng thuật toán", "Xác định bài toán", "Kiểm lỗi"], correctOrder: ["Xác định bài toán", "Xây dựng thuật toán", "Viết chương trình", "Kiểm lỗi"], exp: "Xác định -> Thuật toán -> Code -> Test." },
+            { type: "mcq", q: "Input của bài toán tính diện tích hình vuông cạnh a là gì?", options: ["Số a", "Diện tích S", "Chu vi C"], correct: 0, exp: "Cần cạnh a để tính S." },
+            { type: "fill", q: "Cách mô tả thuật toán bằng hình vẽ gọi là sơ đồ _______.", correct: "khối", exp: "Sơ đồ khối giúp hình dung thuật toán dễ dàng hơn." }
+        ];
+
+        const BASE_Q2 = [
+            { type: "mcq", q: "Trong sơ đồ khối, hình chữ nhật biểu thị thao tác gì?", options: ["Nhập/Xuất", "Tính toán/Xử lý", "So sánh"], correct: 1, exp: "Hình chữ nhật dùng cho các phép toán." },
+            { type: "mcq", q: "Hình thoi trong sơ đồ khối dùng để làm gì?", options: ["Bắt đầu", "Kiểm tra điều kiện", "Kết thúc"], correct: 1, exp: "Hình thoi dùng cho cấu trúc rẽ nhánh." },
+            { type: "fill", q: "Hình _______ biểu thị thao tác Nhập/Xuất dữ liệu.", correct: "bình hành", exp: "Quy ước: Bình hành là Vào/Ra." },
+            { type: "mcq", q: "Điểm bắt đầu và kết thúc sơ đồ khối nằm trong hình gì?", options: ["Hình tròn", "Hình Elip", "Hình chữ nhật"], correct: 1, exp: "Hình Elip bo tròn là nơi khởi đầu và kết thúc." }
+        ];
+
+        // Câu hỏi về SUMIF, COUNTIF, IF, MONTH cho Ải 3
+        const BASE_Q3 = [
+            { type: "mcq", q: "Hàm nào dùng để tính tổng có điều kiện trong Excel?", options: ["SUM", "SUMIF", "COUNTIF", "IF"], correct: 1, exp: "SUMIF = SUM (Tổng) + IF (Nếu/Điều kiện)." },
+            { type: "mcq", q: "Cú pháp của hàm COUNTIF là gì?", options: ["=COUNTIF(điều_kiện, vùng)", "=COUNTIF(vùng, điều_kiện)", "=COUNTIF(vùng)", "=COUNTIF(điều_kiện)"], correct: 1, exp: "Nhớ nhé: Vùng dữ liệu trước, điều kiện sau!" },
+            { type: "fill", q: "Hàm dùng để lấy giá trị tháng từ một ô ngày tháng là _______.", correct: "month", exp: "MONTH(ngày) sẽ trả về số từ 1 đến 12." },
+            { type: "mcq", q: "Hàm IF có tối đa bao nhiêu đối số?", options: ["1", "2", "3", "4"], correct: 2, exp: "IF(điều_kiện, giá_trị_đúng, giá_trị_sai) -> Tổng cộng 3 đối số." },
+            { type: "fill", q: "Để đếm xem có bao nhiêu học sinh 'Giỏi', ta dùng hàm _______.", correct: "countif", exp: "COUNTIF đếm các ô thỏa mãn tiêu chí." },
+            { type: "mcq", q: "Trong hàm SUMIF(B2:B10, '>50', C2:C10), vùng tính tổng là vùng nào?", options: ["B2:B10", "C2:C10", "'>50'"], correct: 1, exp: "Đối số thứ 3 của SUMIF là vùng cần cộng các con số lại." },
+            { type: "sort", q: "Sắp xếp các thành phần của hàm IF chuẩn:", items: ["giá_trị_nếu_sai", "điều_kiện_kiểm_tra", "giá_trị_nếu_đúng"], correctOrder: ["điều_kiện_kiểm_tra", "giá_trị_nếu_đúng", "giá_trị_nếu_sai"], exp: "Cấu trúc: IF(Test, True, False)." },
+            { type: "mcq", q: "Kết quả của =MONTH('2024-12-25') là bao nhiêu?", options: ["2024", "12", "25"], correct: 1, exp: "Hàm lấy ra phần tháng là 12." },
+            { type: "fill", q: "Để tính tổng tiền của riêng mặt hàng 'Gạo', ta dùng hàm _______.", correct: "sumif", exp: "Tính tổng kèm điều kiện tên mặt hàng." },
+            { type: "mcq", q: "Biểu thức =IF(5>3, 'Lớn', 'Nhỏ') trả về kết quả gì?", options: ["Lớn", "Nhỏ", "Báo lỗi"], correct: 0, exp: "Vì 5 lớn hơn 3 là ĐÚNG nên chọn giá trị thứ nhất." }
+        ];
+
+        const QUESTIONS = {
+            level1: createQuestions(10, BASE_Q1),
+            level2: createQuestions(15, BASE_Q2),
+            level3: createQuestions(20, BASE_Q3),
+            level4: createQuestions(25, [])
+        };
+
+        let state = {
+            name: "", score: 0, level: 0, qIdx: 0, correctCount: 0,
+            unlocked: [true, false, false, false],
+            currentQuestions: [], tempOrder: [], classifyData: { current: {} }, showingResult: false
+        };
+
+        function startGame() {
+            state.name = document.getElementById('p-name').value.trim() || "Người bạn bí ẩn";
+            document.getElementById('hud-name').innerText = state.name;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('game-hud').style.display = 'flex';
+            document.getElementById('map-screen').style.display = 'block';
+            renderMap();
+        }
+
+        function renderMap() {
+            const grid = document.getElementById('map-grid');
+            const titles = ["Quy trình giải bài", "Sơ đồ khối logic", "Hàm Excel (IF/SUMIF)", "Chuyên gia tổng hợp"];
+            const counts = [10, 15, 20, 25];
+            grid.innerHTML = titles.map((t, i) => `
+                <div class="map-node ${state.unlocked[i] ? 'active' : 'locked'}" onclick="enterLevel(${i})">
+                    ${!state.unlocked[i] ? '<div class="lock-icon">🔒</div>' : ''}
+                    <div style="font-size: 3rem; margin-bottom:10px;">${['🌱','⚙️','📊','🏆'][i]}</div>
+                    <div style="font-weight: 800; font-size: 1.2rem; color: var(--primary-dark);">ẢI ${i+1}</div>
+                    <div style="font-size: 0.9rem; font-weight: 600; opacity: 0.8;">${t}</div>
+                    <div style="font-size: 0.8rem; color: var(--secondary); margin-top: 5px;">${counts[i]} câu hỏi</div>
+                </div>
+            `).join('');
+        }
+
+        function enterLevel(idx) {
+            if(!state.unlocked[idx]) return;
+            state.level = idx; state.qIdx = 0; state.correctCount = 0; state.showingResult = false;
+            state.currentQuestions = shuffle([...QUESTIONS[`level${idx+1}`]]);
+            document.getElementById('map-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            document.getElementById('level-title').innerText = `Ải ${idx+1} 🎈`;
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = state.currentQuestions[state.qIdx];
+            const container = document.getElementById('quiz-content');
+            const action = document.getElementById('quiz-action');
+            document.getElementById('q-count').innerText = `Câu ${state.qIdx + 1}/${state.currentQuestions.length}`;
+            document.getElementById('progress-bar').style.width = `${((state.qIdx+1)/state.currentQuestions.length)*100}%`;
+            action.style.display = (q.type === 'mcq') ? 'none' : 'block';
+            
+            let html = `<div class="question-text">${q.q}</div>`;
+            if(q.type === 'mcq') {
+                let opts = q.options.map((o, i) => ({ text: o, id: i }));
+                shuffle(opts);
+                html += `<div class="options-grid">${opts.map(o => `<button class="option-btn" onclick="checkMcq(${o.id === q.correct}, this)"><span>🔹</span> ${o.text}</button>`).join('')}</div>`;
+            } else if(q.type === 'fill') {
+                const words = q.correct.split(' ');
+                html += `<div class="fill-container">`;
+                words.forEach((word) => {
+                    for(let i=0; i<word.length; i++) html += `<input type="text" class="char-input" maxlength="1" oninput="handleCharInput(this)">`;
+                    html += `<div class="char-space"></div>`;
+                });
+                html += `</div>`;
+            } else if(q.type === 'sort') {
+                state.tempOrder = shuffle([...q.items]);
+                html += `<div class="sortable-list" id="sort-list">${state.tempOrder.map((item, i) => `<div class="sort-item" draggable="true" ondragstart="e => e.dataTransfer.setData('text', ${i})" ondragover="e => e.preventDefault()" ondrop="handleDrop(event, ${i})">☰ ${item}</div>`).join('')}</div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function handleCharInput(el) {
+            if(el.value) {
+                const inputs = Array.from(document.querySelectorAll('.char-input'));
+                const next = inputs[inputs.indexOf(el) + 1];
+                if(next) next.focus();
+                if(inputs.every(i => i.value)) setTimeout(() => checkComplexAnswer(), 300);
+            }
+        }
+
+        function handleDrop(e, to) {
+            const from = e.dataTransfer.getData('text');
+            const item = state.tempOrder.splice(from, 1)[0];
+            state.tempOrder.splice(to, 0, item);
+            renderQuestion(); // Re-render logic for sort
+        }
+
+        function checkMcq(isCorrect, btn) {
+            const q = state.currentQuestions[state.qIdx];
+            if(isCorrect) {
+                btn.classList.add('correct-flash');
+                state.score += 10; state.correctCount++;
+                document.getElementById('hud-score').innerText = state.score;
+                setTimeout(() => nextStep(), 400);
+            } else {
+                showFeedback(false, q.options[q.correct], q.exp);
+            }
+        }
+
+        function checkComplexAnswer() {
+            const q = state.currentQuestions[state.qIdx];
+            let isCorrect = false;
+            let correctText = q.correct || "";
+
+            if(q.type === 'fill') {
+                const val = removeAccents(Array.from(document.querySelectorAll('.char-input')).map(i => i.value).join('').toLowerCase());
+                isCorrect = val === removeAccents(q.correct.replace(/\s/g, '').toLowerCase());
+            } else if(q.type === 'sort') {
+                isCorrect = JSON.stringify(state.tempOrder) === JSON.stringify(q.correctOrder);
+                correctText = q.correctOrder.join(" ➔ ");
+            }
+
+            if(isCorrect) {
+                state.score += 10; state.correctCount++;
+                document.getElementById('hud-score').innerText = state.score;
+                nextStep();
+            } else {
+                showFeedback(false, correctText, q.exp);
+            }
+        }
+
+        function showFeedback(correct, ans, exp) {
+            const modal = document.getElementById('feedback-modal');
+            document.getElementById('modal-correct-ans').innerHTML = `💡 Đáp án: <span style="color:var(--primary-dark)">${ans.toUpperCase()}</span>`;
+            document.getElementById('modal-exp').innerText = exp;
+            modal.style.display = 'flex';
+        }
+
+        function closeFeedback() {
+            document.getElementById('feedback-modal').style.display = 'none';
+            if(state.showingResult) backToMap(); else nextStep();
+        }
+
+        function nextStep() {
+            state.qIdx++;
+            if(state.qIdx >= state.currentQuestions.length) showFinalResult(); else renderQuestion();
+        }
+
+        function showFinalResult() {
+            state.showingResult = true;
+            const total = state.currentQuestions.length;
+            const percent = (state.correctCount / total) * 100;
+            const passed = percent >= 70;
+            
+            if(passed && state.level < 3) state.unlocked[state.level + 1] = true;
+
+            const modal = document.getElementById('feedback-modal');
+            document.getElementById('modal-title').innerText = passed ? "ẢI TIẾP THEO ĐÃ MỞ!" : "CHƯA ĐỦ ĐIỀU KIỆN...";
+            document.getElementById('modal-correct-ans').innerHTML = `Bạn đúng <b>${state.correctCount}/${total}</b> câu (${percent.toFixed(1)}%)`;
+            document.getElementById('modal-exp').innerText = passed ? "Giỏi quá! Tiếp tục phát huy nhé!" : "Cần ít nhất 70% để qua màn. Thử lại nào!";
+            modal.style.display = 'flex';
+        }
+
+        function backToMap() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('map-screen').style.display = 'block';
+            renderMap();
+        }
+    </script>
+</body>
+</html>

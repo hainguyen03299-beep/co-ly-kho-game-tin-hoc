@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KHO GAME TIN HỌC 9 - CÔ LÝ</title>
+    <style>
+        :root {
+            /* Palette màu Xanh Dương Mát Rượi */
+            --bg-main: #e0f2fe;
+            --blue-light: #f0f9ff;
+            --blue-soft: #bae6fd;
+            --blue-medium: #7dd3fc;
+            --blue-deep: #0ea5e9;
+            --text-main: #0369a1;
+            --text-sub: #075985;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --shadow-blue: 0 10px 25px rgba(14, 165, 233, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            background-image: 
+                linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Hiệu ứng bong bóng/giọt nước trôi */
+        #effect-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .bubble {
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            animation: rise linear forwards;
+            filter: blur(1px);
+            opacity: 0.6;
+        }
+
+        @keyframes rise {
+            0% {
+                transform: translateY(110vh) scale(0.5);
+                opacity: 0;
+            }
+            20% { opacity: 0.5; }
+            80% { opacity: 0.5; }
+            100% {
+                transform: translateY(-10vh) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* Layout chính */
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 40px 20px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo-box {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: var(--shadow-blue);
+            font-size: 50px; /* Tăng kích thước icon logo */
+            border: 3px solid var(--blue-soft);
+        }
+
+        h1 {
+            font-size: 1.8rem; /* Tăng từ 1.6rem */
+            font-weight: 800;
+            color: var(--text-sub);
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 1.1rem; /* Tăng từ 0.95rem */
+            color: var(--text-main);
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        /* Card Giao diện */
+        .card {
+            background: var(--card-bg);
+            border-radius: 35px;
+            padding: 30px 25px;
+            box-shadow: var(--shadow-blue);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            font-weight: 700;
+            font-size: 1.2rem; /* Tăng từ 1rem */
+            margin-bottom: 20px;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .blue-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--blue-deep);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--blue-medium);
+        }
+
+        /* Danh sách Game */
+        .game-link {
+            display: flex;
+            align-items: center;
+            padding: 20px 22px; /* Tăng padding */
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            text-decoration: none;
+            color: var(--text-sub);
+            font-weight: 700; /* Tăng độ đậm */
+            margin-bottom: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--blue-light);
+            font-size: 1.15rem; /* Tăng kích thước chữ nút bấm */
+        }
+
+        .game-link:last-child { margin-bottom: 0; }
+
+        .game-link .icon-box {
+            min-width: 55px;
+            height: 55px;
+            background: var(--blue-light);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 18px;
+            font-size: 30px; /* Tăng kích thước icon nút bấm */
+            transition: transform 0.3s ease;
+        }
+
+        .game-link:hover {
+            transform: translateY(-5px);
+            background: #ffffff;
+            box-shadow: 0 12px 20px rgba(14, 165, 233, 0.1);
+            border-color: var(--blue-medium);
+        }
+
+        .game-link:hover .icon-box {
+            transform: scale(1.1) rotate(-5deg);
+            background: var(--blue-soft);
+        }
+
+        .game-link.locked {
+            opacity: 0.6;
+            background: #f1f5f9;
+            cursor: not-allowed;
+            pointer-events: none;
+            border-color: transparent;
+            color: #94a3b8;
+        }
+
+        /* Trang trí Quote */
+        .info-box {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%);
+            color: white;
+            border-radius: 28px;
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.2);
+        }
+
+        .info-box p {
+            font-size: 1.05rem; /* Tăng kích thước chữ quote */
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            font-size: 1rem; /* Tăng từ 0.85rem */
+            color: var(--text-main);
+            opacity: 0.7;
+            width: 100%;
+        }
+
+        /* Điều khiển nhạc */
+        .music-player {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+        }
+
+        #music-toggle {
+            width: 65px; /* To hơn chút */
+            height: 65px;
+            border-radius: 22px;
+            background: white;
+            border: 2px solid var(--blue-soft);
+            color: var(--blue-deep);
+            box-shadow: var(--shadow-blue);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: all 0.3s;
+        }
+
+        #music-toggle.active {
+            background: var(--blue-deep);
+            color: white;
+            border-color: transparent;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
+            70% { box-shadow: 0 0 0 18px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+
+        @media (max-width: 400px) {
+            h1 { font-size: 1.5rem; }
+            .game-link { font-size: 1rem; }
+        }
+
+        @media (max-height: 500px) {
+            .container { padding: 20px 20px; }
+            .logo-box { width: 60px; height: 60px; font-size: 35px; margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="effect-container"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo-box">🌊</div>
+            <h1>KHO GAME TIN HỌC 9</h1>
+            <p class="subtitle">Hành trình vạn dặm bắt đầu từ một bước chân nhỏ. Hãy học bằng cả sự say mê!" ⛵</p>
+        </header>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="blue-dot"></div>
+                THỬ THÁCH KIẾN THỨC
+            </div>
+            
+            <a href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi8-TinHoc/Phanbietinputoutput.html" class="game-link">
+                <div class="icon-box">🐳</div>
+                <span>Ôn Luyện Bài 12 - Tin 9</span>
+           </a>
+             <a href="https://gemini.google.com/share/dd01c24c3be7" class="game-link">
+                <div class="icon-box">🐳</div>
+                <span>Ôn Tập Hàm Excel </span>
+            </a> </a>
+             <a href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi9-TinHoc/ontap.html" class="game-link">
+                <div class="icon-box">🐳</div>
+                <span>Ôn Tập Cuối Kì </span>
+            </a>
+
+            <a href="#" class="game-link locked">
+                <div class="icon-box">🧊</div>
+                <span>Băng Tan Thuật Toán</span>
+            </a>
+            
+            <a href="#" class="game-link locked">
+                <div class="icon-box">⚓</div>
+                <span>Cảng Biển Dữ Liệu</span>
+            </a>
+        </div>
+
+       
+    </div>
+
+    <footer>
+        <p><b>Cô Lý • Tin Học 9</b><br>Trường Phổ thông Thực hành Sư phạm Đại học Vinh • 2025</p>
+    </footer>
+
+    <div class="music-player">
+        <button id="music-toggle" aria-label="Phát nhạc">
+            <span id="music-icon">🌊</span>
+        </button>
+    </div>
+
+    <audio id="bg-audio" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Hiệu ứng giọt nước bay lên
+        function createBubble() {
+            const container = document.getElementById('effect-container');
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            
+            const elements = ['💧', '☁️', '❄️', '🔹', '⚪'];
+            bubble.innerText = elements[Math.floor(Math.random() * elements.length)];
+            
+            const left = Math.random() * 100;
+            const duration = 7 + Math.random() * 8;
+            const size = 15 + Math.random() * 22; // Hạt to hơn xíu
+            
+            bubble.style.left = left + 'vw';
+            bubble.style.fontSize = size + 'px';
+            bubble.style.animationDuration = duration + 's';
+            bubble.style.color = '#7dd3fc';
+            
+            container.appendChild(bubble);
+            
+            setTimeout(() => bubble.remove(), duration * 1000);
+        }
+
+        setInterval(createBubble, 1000);
+
+        const audio = document.getElementById('bg-audio');
+        const btn = document.getElementById('music-toggle');
+        const icon = document.getElementById('music-icon');
+
+        btn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play().catch(() => {});
+                btn.classList.add('active');
+                icon.innerText = '🎵';
+            } else {
+                audio.pause();
+                btn.classList.remove('active');
+                icon.innerText = '🌊';
+            }
+        });
+
+        window.onload = () => {
+            for(let i=0; i<6; i++) {
+                setTimeout(createBubble, i * 400);
+            }
+        };
+    </script>
+</body>
+</html>
