@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KHO GAME TIN HỌC 8 - CÔ LÝ</title>
+    <style>
+        :root {
+            --primary-green: #95d5b2;
+            --secondary-green: #d8f3dc;
+            --dark-green: #2d6a4f;
+            --mint-green: #b7e4c7;
+            --text-color: #1b4332;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            margin: 0; 
+            padding: 10px; 
+            text-align: center; 
+            color: var(--text-color);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Hiệu ứng lá rơi tối ưu */
+        .leaf-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .leaf {
+            position: absolute;
+            background-color: var(--primary-green);
+            border-radius: 150% 0 150% 0;
+            opacity: 0.5;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.7; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 600px; 
+            margin: 20px auto;
+            position: relative;
+            z-index: 10;
+            padding: 0 15px;
+        }
+
+        h1 { 
+            color: var(--dark-green); 
+            margin-bottom: 20px; 
+            font-size: clamp(1.2rem, 5vw, 1.8rem); /* Chữ tự co giãn theo màn hình */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+            background: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 8px 20px rgba(149, 213, 178, 0.3);
+            display: inline-block;
+            border: 2px solid var(--primary-green);
+            width: 100%;
+        }
+
+        .category { 
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px; 
+            padding: clamp(15px, 4vw, 25px); 
+            margin-bottom: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            border: 2px solid var(--mint-green);
+            text-align: left; 
+            backdrop-filter: blur(8px);
+        }
+
+        .category h2 { 
+            font-size: clamp(1rem, 4.5vw, 1.25rem);
+            color: var(--dark-green); 
+            margin-top: 0; 
+            border-bottom: 2px dashed var(--primary-green); 
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .category h2::before {
+            content: '🌿';
+            margin-right: 8px;
+        }
+
+        .game-link { 
+            display: block; 
+            background: linear-gradient(to right, #f7fffb, #e9ffef);
+            color: var(--dark-green); 
+            padding: 14px; 
+            margin: 10px 0; 
+            text-decoration: none; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            font-size: clamp(0.9rem, 4vw, 1rem);
+            transition: all 0.2s ease; 
+            border: 1px solid var(--mint-green);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.02);
+            word-wrap: break-word; /* Đảm bảo chữ không tràn trên màn hình cực nhỏ */
+        }
+
+        /* Hiệu ứng khi chạm/di chuột */
+        @media (hover: hover) {
+            .game-link:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 12px rgba(45, 106, 79, 0.15);
+                background: white;
+            }
+        }
+
+        .game-link:active { 
+            transform: scale(0.97);
+            background: var(--primary-green); 
+            color: white; 
+        }
+
+        /* Trình phát nhạc thích ứng */
+        .music-player {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+            border: 1.5px solid var(--primary-green);
+        }
+
+        .music-btn {
+            background: var(--primary-green);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .footer { 
+            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+            color: var(--dark-green); 
+            margin: 20px 0;
+            padding: 12px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 15px;
+            border: 1px solid var(--mint-green);
+            width: 100%;
+        }
+
+        /* Trang trí cố định */
+        .decoration {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: clamp(20px, 8vw, 40px);
+            opacity: 0.4;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Tối ưu hóa cho màn hình rất nhỏ */
+        @media (max-width: 350px) {
+            .music-player span { display: none; }
+            h1 { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="leaf-container" id="leaf-container"></div>
+
+    <div class="container">
+        <h1>🌱 KHO GAME TIN HỌC 8 🌱</h1>
+                
+        <div class="category">
+            <h2>Ôn luyện kiến thức</h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi8-TinHoc/Phanbietinputoutput.html">
+                🏍️ Thử Tài Ai Nhanh Hơn 
+            </a>
+             <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi8-TinHoc/DauTruongSinhTon.html">🏠 Ôn Luyện Biến - Hằng - Cấu Trúc Rẽ Nhánh </a>
+           <a class="game-link">
+                🧩 Giải mã thuật toán (Sắp ra mắt)
+            </a>
+        </div>  
+
+        <div class="footer">
+            🍀 Thiết kế bởi <b>Cô Lý</b> - Trường Phổ thông Thực hành Sư phạm Đại học Vinh 🍀
+        </div>
+    </div>
+
+    <div class="decoration">🍃</div>
+
+    <div class="music-player">
+        <span style="font-size: 11px;">BGM</span>
+        <button class="music-btn" id="musicToggle" aria-label="Bật/Tắt nhạc">
+            <svg id="playIcon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pauseIcon" style="display:none" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        function createLeaves() {
+            const container = document.getElementById('leaf-container');
+            // Giảm số lượng lá trên thiết bị di động để mượt hơn
+            const isMobile = window.innerWidth < 600;
+            const leafCount = isMobile ? 12 : 20;
+
+            for (let i = 0; i < leafCount; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'leaf';
+                
+                const startLeft = Math.random() * 100;
+                const size = Math.random() * 10 + 10;
+                const duration = Math.random() * 8 + 6;
+                const delay = Math.random() * 15;
+
+                leaf.style.left = startLeft + 'vw';
+                leaf.style.width = size + 'px';
+                leaf.style.height = (size * 1.3) + 'px';
+                leaf.style.animationDuration = duration + 's';
+                leaf.style.animationDelay = '-' + delay + 's';
+                
+                const colors = ['#b7e4c7', '#95d5b2', '#d8f3dc'];
+                leaf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+                container.appendChild(leaf);
+            }
+        }
+
+        const music = document.getElementById('bgMusic');
+        const btn = document.getElementById('musicToggle');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+
+        btn.addEventListener('click', () => {
+            if (music.paused) {
+                music.play().catch(e => console.log("Yêu cầu tương tác"));
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            } else {
+                music.pause();
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+        });
+
+        // Xử lý khi xoay màn hình hoặc thay đổi kích thước
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                document.getElementById('leaf-container').innerHTML = '';
+                createLeaves();
+            }, 250);
+        });
+
+        window.onload = createLeaves;
+    </script>
+</body>
+</html>

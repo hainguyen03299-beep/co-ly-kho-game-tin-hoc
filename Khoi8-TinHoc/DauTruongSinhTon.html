@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CODE WARRIOR: ĐẤU TRƯỜNG SINH TỒN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Quicksand:wght@400;600;700&display=swap');
+
+        :root {
+            --primary: #4facfe;
+            --secondary: #00f2fe;
+            --danger: #ff4757;
+            --boss: #a020f0;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: #0b0b18;
+            color: #fff;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pixel-font { font-family: 'Press Start 2P', cursive; }
+
+        .glass-morphism {
+            background: rgba(15, 15, 30, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            border-radius: 24px;
+        }
+
+        .bar-outer {
+            background: rgba(0,0,0,0.4);
+            height: 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-inner {
+            height: 100%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hp-fill { background: linear-gradient(90deg, #ff4757, #ff6b81); box-shadow: 0 0 10px #ff4757; }
+        .energy-fill { background: linear-gradient(90deg, #f1c40f, #e67e22); box-shadow: 0 0 10px #f1c40f; }
+        .boss-fill { background: linear-gradient(90deg, #8e44ad, #a020f0); box-shadow: 0 0 15px #a020f0; }
+
+        .btn-game { transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
+        .btn-game:active { transform: scale(0.96); }
+
+        .answer-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s;
+        }
+
+        .answer-btn:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--primary); }
+        .answer-btn.correct { background: rgba(16, 185, 129, 0.2) !important; border-color: #10b981 !important; }
+        .answer-btn.wrong { background: rgba(239, 68, 68, 0.2) !important; border-color: #ef4444 !important; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake { animation: shake 0.2s ease-in-out 2; }
+    </style>
+</head>
+<body>
+
+    <audio id="sfx-correct"><source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sfx-wrong"><source src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+    <audio id="sfx-hit"><source src="https://assets.mixkit.co/active_storage/sfx/1113/1113-preview.mp3"></audio>
+
+    <div id="app" class="flex-grow flex flex-col items-center justify-center p-4 z-10">
+        
+        <!-- LOGIN SCREEN -->
+        <div id="screen-login" class="glass-morphism w-full max-w-md p-8 text-center space-y-6">
+            <div>
+                <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">CODE WARRIOR</h1>
+                <p class="pixel-font text-[10px] text-red-500 tracking-widest">ĐẤU TRƯỜNG SINH TỒN</p>
+            </div>
+            
+            <div class="text-7xl py-4 animate-pulse">⚔️</div>
+
+            <div class="space-y-4">
+                <input type="text" id="input-name" maxlength="15" placeholder="Nhập tên chiến binh..." 
+                       class="w-full bg-black/40 border border-cyan-500/50 rounded-xl p-4 text-center text-white focus:outline-none focus:border-cyan-400">
+                
+                <button onclick="Game.init()" class="btn-game w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl font-bold text-xl shadow-lg shadow-cyan-500/20">
+                    BẮT ĐẦU HÀNH TRÌNH
+                </button>
+            </div>
+
+            <div class="pt-4 border-t border-white/5">
+                <button onclick="Game.toggleLeaderboard()" class="text-xs pixel-font text-yellow-500 hover:text-yellow-300 transition-colors">
+                    [ XEM BẢNG XẾP HẠNG ]
+                </button>
+                <div id="mini-leaderboard" class="hidden mt-4 text-left bg-black/40 rounded-lg p-3 max-h-48 overflow-y-auto text-sm border border-white/5">
+                    <p class="text-gray-500 text-center italic">Đang tải...</p>
+                </div>
+            </div>
+            
+            <!-- Hiển thị trạng thái kết nối -->
+            <div id="auth-status" class="text-[9px] text-gray-500 uppercase tracking-widest">Đang kiểm tra tín hiệu...</div>
+        </div>
+
+        <!-- STAGE INTRO -->
+        <div id="screen-stage" class="hidden glass-morphism w-full max-w-md p-8 text-center space-y-6">
+            <h2 id="stage-title" class="text-3xl font-bold text-yellow-400 uppercase">CHẶNG 1</h2>
+            <div id="stage-icon" class="text-8xl">🛡️</div>
+            <p id="stage-desc" class="text-gray-300 text-lg leading-relaxed"></p>
+            <button onclick="Game.startQuestions()" class="btn-game w-full py-4 bg-white text-black rounded-xl font-bold text-xl hover:bg-cyan-50 transition-colors">
+                SẴN SÀNG!
+            </button>
+        </div>
+
+        <!-- QUIZ SCREEN -->
+        <div id="screen-quiz" class="hidden glass-morphism w-full max-w-2xl p-6 relative">
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] pixel-font text-red-400"><span>HP</span><span id="hud-hp-val">3/3</span></div>
+                        <div class="bar-outer"><div id="bar-hp" class="bar-inner hp-fill" style="width: 100%"></div></div>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] pixel-font text-yellow-400"><span>ENERGY</span><span id="hud-energy-val">0</span></div>
+                        <div class="bar-outer"><div id="bar-energy" class="bar-inner energy-fill" style="width: 0%"></div></div>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end justify-between">
+                    <div id="hud-timer" class="pixel-font text-xl text-cyan-400">00:00</div>
+                    <div class="text-right text-[9px] text-gray-500 uppercase">
+                        Chặng <span id="hud-stage" class="text-white">1</span> | Câu <span id="hud-qnum" class="text-white">1</span>/5
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOSS AREA (Chỉ hiện ở chặng 3) -->
+            <div id="boss-area" class="hidden mb-8 p-4 border border-purple-500/30 rounded-xl bg-purple-900/10">
+                <div class="flex justify-between items-end mb-2">
+                    <div class="flex items-center gap-3"><span class="text-2xl">🐲</span><span class="pixel-font text-[10px] text-purple-400">RỒNG LOGIC</span></div>
+                    <span id="boss-hp-pct" class="font-bold text-purple-400">100%</span>
+                </div>
+                <div class="bar-outer"><div id="bar-boss" class="bar-inner boss-fill" style="width: 100%"></div></div>
+            </div>
+
+            <div class="min-h-[250px]">
+                <div id="question-text" class="text-xl md:text-2xl font-bold mb-8 text-center text-white leading-relaxed"></div>
+                <div id="options-grid" class="grid grid-cols-1 gap-3"></div>
+            </div>
+        </div>
+
+        <!-- END SCREEN -->
+        <div id="screen-end" class="hidden glass-morphism w-full max-w-md p-8 text-center space-y-6">
+            <h2 id="end-title" class="text-4xl font-bold text-cyan-400">HOÀN THÀNH!</h2>
+            <div id="end-icon" class="text-7xl">🏆</div>
+            <div class="bg-black/40 rounded-2xl p-6 text-left space-y-3 border border-white/5">
+                <div class="flex justify-between"><span>Chiến binh:</span> <span id="res-name" class="font-bold text-cyan-400">---</span></div>
+                <div class="flex justify-between"><span>Tổng Energy:</span> <span id="res-energy" class="font-bold text-yellow-400">0</span></div>
+                <div class="flex justify-between"><span>Thời gian:</span> <span id="res-time" class="font-bold text-purple-400">00:00</span></div>
+            </div>
+            <button onclick="location.reload()" class="btn-game w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl font-bold text-xl shadow-lg">CHƠI LẠI</button>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        // Cấu hình Firebase mới được cung cấp
+        const firebaseConfig = {
+            apiKey: "AIzaSyD271ASAycutvOF4dW2AjBCWeKcQsuTnp8",
+            authDomain: "test2-khoi8.firebaseapp.com",
+            databaseURL: "https://test2-khoi8-default-rtdb.firebaseio.com/",
+            projectId: "test2-khoi8",
+            storageBucket: "test2-khoi8.firebasestorage.app",
+            messagingSenderId: "795952156966",
+            appId: "1:795952156966:web:429927accbe3c9d882f1e7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const internalAppId = firebaseConfig.projectId; // Tự động lấy từ config
+
+        const Game = {
+            state: {
+                user: null, playerName: "", stage: 1, qIndex: 0, hp: 3, maxHp: 3, energy: 0, combo: 0, bossHp: 100, startTime: 0, timerInterval: null, canClick: true, questions: [],
+                allQuestions: [
+                    { q: "Biến (Variable) là gì?", a: ["Giá trị cố định", "Vùng nhớ lưu dữ liệu", "Phép toán logic", "Một loại âm nhạc"], c: 1, lv: 1 },
+                    { q: "Hằng số (Constant) khác biến ở điểm nào?", a: ["Có tên dài hơn", "Giá trị không thay đổi", "Chỉ chứa số", "Không có gì khác"], c: 1, lv: 1 },
+                    { q: "Lệnh gán 'x = 10' nghĩa là gì?", a: ["So sánh x với 10", "Gán giá trị 10 vào x", "Xóa biến x", "In ra số 10"], c: 1, lv: 1 },
+                    { q: "Trong Scratch, khối 'Change score by 1' làm gì?", a: ["Đặt điểm thành 1", "Tăng điểm thêm 1", "Giảm điểm đi 1", "Đổi tên biến"], c: 1, lv: 1 },
+                    { q: "Biến toàn cục có thể dùng ở đâu?", a: ["Chỉ 1 nhân vật", "Mọi nơi trong code", "Chỉ trong vòng lặp", "Không dùng được"], c: 1, lv: 1 },
+                    { q: "Sau lệnh 'x = 5; x = x + 3', giá trị x là?", a: ["5", "3", "8", "Lỗi"], c: 2, lv: 2 },
+                    { q: "Biến x = 10, nếu x > 5 thì x = x - 2. Kết quả?", a: ["10", "8", "5", "3"], c: 1, lv: 2 },
+                    { q: "Kiểu dữ liệu Boolean chỉ có thể là:", a: ["Số và Chữ", "Đúng hoặc Sai", "Lớn hoặc Nhỏ", "Trắng hoặc Đen"], c: 1, lv: 2 },
+                    { q: "Tại sao cần đặt tên biến có ý nghĩa?", a: ["Để code chạy nhanh hơn", "Để dễ hiểu và quản lý", "Để máy tính không bị hỏng", "Không cần thiết"], c: 1, lv: 2 },
+                    { q: "Biến đếm (Counter) thường dùng trong?", a: ["Vòng lặp", "Lệnh in", "Phép chia", "Kết thúc game"], c: 0, lv: 2 },
+                    { q: "a=2, b=3. Lệnh: c=a; a=b; b=c. Giá trị a, b?", a: ["a=2, b=3", "a=3, b=2", "a=3, b=3", "a=2, b=2"], c: 1, lv: 3 },
+                    { q: "x=3. Lặp 3 lần: x = x * 2. Kết quả x?", a: ["9", "18", "24", "12"], c: 2, lv: 3 },
+                    { q: "Nếu (x/2 dư 0) thì x = 10. Với x=5, x cuối là?", a: ["10", "5", "0", "Lỗi"], c: 1, lv: 3 },
+                    { q: "Dùng biến nào để lưu tên người chơi?", a: ["Number", "String", "Boolean", "Null"], c: 1, lv: 3 },
+                    { q: "Biến x=100. Sau 'x = x % 3', x là bao nhiêu?", a: ["0", "1", "33", "10"], c: 1, lv: 3 }
+                ]
+            },
+            config: {
+                1: { title: "Chặng 1: TRANG BỊ TẬN RĂNG", icon: "🛡️", desc: "Làm quen với khái niệm Biến & Hằng. Hãy chuẩn bị kỹ kiến thức!" },
+                2: { title: "Chặng 2: QUÁI VẬT LOGIC", icon: "👹", desc: "Áp dụng các thuật toán tính toán. Cẩn thận, quái vật rất mạnh!" },
+                3: { title: "Chặng 3: DIỆT RỒNG CUỐI", icon: "🐲", desc: "Trận chiến cuối cùng. Chỉ những chiến binh giỏi nhất mới có thể chiến thắng!" }
+            },
+
+            init() {
+                const name = document.getElementById('input-name').value.trim();
+                if(!name) return;
+                this.state.playerName = name;
+                this.showScreen('screen-stage');
+                this.updateStageIntro();
+                this.state.startTime = Date.now();
+                this.startTimer();
+            },
+
+            showScreen(id) {
+                ['screen-login', 'screen-stage', 'screen-quiz', 'screen-end'].forEach(s => {
+                    const el = document.getElementById(s);
+                    if(el) el.classList.add('hidden');
+                });
+                const target = document.getElementById(id);
+                if(target) target.classList.remove('hidden');
+            },
+
+            updateStageIntro() {
+                const cfg = this.config[this.state.stage];
+                document.getElementById('stage-title').innerText = cfg.title;
+                document.getElementById('stage-icon').innerText = cfg.icon;
+                document.getElementById('stage-desc').innerText = cfg.desc;
+            },
+
+            startQuestions() {
+                this.showScreen('screen-quiz');
+                this.state.questions = this.state.allQuestions.filter(q => q.lv === this.state.stage).sort(() => Math.random() - 0.5);
+                this.state.qIndex = 0;
+                const bossArea = document.getElementById('boss-area');
+                if(bossArea) bossArea.classList.toggle('hidden', this.state.stage !== 3);
+                this.renderQuestion();
+            },
+
+            renderQuestion() {
+                this.state.canClick = true;
+                const q = this.state.questions[this.state.qIndex];
+                document.getElementById('question-text').innerText = q.q;
+                document.getElementById('hud-stage').innerText = this.state.stage;
+                document.getElementById('hud-qnum').innerText = this.state.qIndex + 1;
+                const grid = document.getElementById('options-grid');
+                grid.innerHTML = '';
+                q.a.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = "answer-btn w-full p-5 text-left rounded-xl font-semibold";
+                    btn.innerText = `${String.fromCharCode(65+i)}. ${opt}`;
+                    btn.onclick = () => this.handleAnswer(i, btn);
+                    grid.appendChild(btn);
+                });
+                this.updateHUD();
+            },
+
+            handleAnswer(idx, btn) {
+                if(!this.state.canClick) return;
+                this.state.canClick = false;
+                const correct = idx === this.state.questions[this.state.qIndex].c;
+                if(correct) {
+                    btn.classList.add('correct');
+                    this.state.energy += (10 + (this.state.combo * 2));
+                    this.state.combo++;
+                    if(this.state.stage === 3) this.state.bossHp -= 20;
+                } else {
+                    btn.classList.add('wrong');
+                    this.state.combo = 0;
+                    if(this.state.stage > 1) this.state.hp--;
+                    document.getElementById('screen-quiz').classList.add('shake');
+                    setTimeout(() => document.getElementById('screen-quiz').classList.remove('shake'), 400);
+                }
+                this.updateHUD();
+                setTimeout(() => {
+                    if(this.state.hp <= 0) return this.gameOver();
+                    this.state.qIndex++;
+                    if(this.state.qIndex < this.state.questions.length && (this.state.stage < 3 || this.state.bossHp > 0)) {
+                        this.renderQuestion();
+                    } else {
+                        this.finishStage();
+                    }
+                }, 800);
+            },
+
+            finishStage() {
+                if(this.state.stage < 3) {
+                    this.state.stage++;
+                    this.showScreen('screen-stage');
+                    this.updateStageIntro();
+                } else {
+                    this.victory();
+                }
+            },
+
+            updateHUD() {
+                const barHp = document.getElementById('bar-hp');
+                const barEnergy = document.getElementById('bar-energy');
+                if(barHp) barHp.style.width = `${(this.state.hp/this.state.maxHp)*100}%`;
+                if(barEnergy) barEnergy.style.width = `${Math.min(this.state.energy, 100)}%`;
+                document.getElementById('hud-hp-val').innerText = `${this.state.hp}/${this.state.maxHp}`;
+                document.getElementById('hud-energy-val').innerText = this.state.energy;
+                if(this.state.stage === 3) {
+                    const barBoss = document.getElementById('bar-boss');
+                    if(barBoss) barBoss.style.width = `${this.state.bossHp}%`;
+                    document.getElementById('boss-hp-pct').innerText = `${this.state.bossHp}%`;
+                }
+            },
+
+            startTimer() {
+                clearInterval(this.state.timerInterval);
+                this.state.timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - this.state.startTime) / 1000);
+                    const m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                    const s = (elapsed % 60).toString().padStart(2, '0');
+                    const hudTimer = document.getElementById('hud-timer');
+                    if(hudTimer) hudTimer.innerText = `${m}:${s}`;
+                }, 1000);
+            },
+
+            gameOver() {
+                clearInterval(this.state.timerInterval);
+                this.showScreen('screen-end');
+                document.getElementById('end-title').innerText = "THẤT BẠI!";
+                document.getElementById('end-icon').innerText = "💀";
+                this.showEndStats();
+            },
+
+            victory() {
+                clearInterval(this.state.timerInterval);
+                this.showScreen('screen-end');
+                this.showEndStats();
+                this.saveToCloud();
+            },
+
+            showEndStats() {
+                document.getElementById('res-name').innerText = this.state.playerName;
+                document.getElementById('res-energy').innerText = this.state.energy;
+                document.getElementById('res-time').innerText = document.getElementById('hud-timer').innerText;
+            },
+
+            async saveToCloud() {
+                if (!this.state.user) return;
+                try {
+                    // Path chuẩn theo Rule 1: /artifacts/{appId}/public/data/{collection}
+                    const lbCol = collection(db, 'artifacts', internalAppId, 'public', 'data', 'leaderboard');
+                    await addDoc(lbCol, {
+                        name: this.state.playerName,
+                        energy: Number(this.state.energy),
+                        time: document.getElementById('hud-timer').innerText,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (e) { console.error("Lỗi Firestore:", e); }
+            },
+
+            toggleLeaderboard() {
+                const box = document.getElementById('mini-leaderboard');
+                if(!box) return;
+                box.classList.toggle('hidden');
+                if(!box.classList.contains('hidden')) this.fetchLeaderboard();
+            },
+
+            async fetchLeaderboard() {
+                const miniLB = document.getElementById('mini-leaderboard');
+                if (!this.state.user) {
+                    if(miniLB) miniLB.innerHTML = '<p class="text-center text-red-400 text-[10px] px-2 py-4">BẢNG XẾP HẠNG KHÓA: VUI LÒNG BẬT ANONYMOUS TRONG FIREBASE!</p>';
+                    return;
+                }
+                const lbCol = collection(db, 'artifacts', internalAppId, 'public', 'data', 'leaderboard');
+                onSnapshot(lbCol, (snap) => {
+                    const data = [];
+                    snap.forEach(doc => data.push(doc.data()));
+                    // Sort bằng JS memory theo Rule 2
+                    data.sort((a, b) => (b.energy || 0) - (a.energy || 0));
+                    const html = data.slice(0, 10).map((e, i) => `
+                        <div class="flex justify-between py-2 border-b border-white/5">
+                            <span class="text-white">#${i+1} ${e.name}</span>
+                            <span class="text-cyan-400 font-bold">${e.energy}⚡</span>
+                        </div>
+                    `).join('');
+                    if(miniLB) miniLB.innerHTML = html || '<p class="text-center text-gray-500 py-2">Chưa có dữ liệu</p>';
+                }, (err) => {
+                    console.error("Snapshot Error:", err);
+                    if(miniLB) miniLB.innerHTML = '<p class="text-red-500 text-center py-2">Lỗi truy cập dữ liệu!</p>';
+                });
+            }
+        };
+
+        const initAuth = async () => {
+            const statusEl = document.getElementById('auth-status');
+            try {
+                // Rule 3: Auth trước rồi mới query
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                if(statusEl) {
+                    statusEl.innerText = "Hệ thống: Trực tuyến ✅";
+                    statusEl.className = "text-[9px] text-green-500 uppercase tracking-widest";
+                }
+            } catch (e) { 
+                console.warn("Auth Error:", e);
+                if(statusEl) {
+                    statusEl.innerText = "Hệ thống: Ngoại tuyến (Thiếu cấu hình) ⚠️";
+                    statusEl.className = "text-[9px] text-red-500 uppercase tracking-widest";
+                }
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => { Game.state.user = user; });
+        initAuth();
+        window.Game = Game;
+    </script>
+</body>
+</html>
