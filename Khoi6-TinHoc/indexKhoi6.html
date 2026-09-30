@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KHO GAME TIN HỌC 6 - CÔ LÝ</title>
+     <div class="info-box">
+            <p>"Hành trình vạn dặm bắt đầu từ một bước chân nhỏ. Hãy học bằng cả sự say mê!" ⛵</p>
+        </div>
+    <style>
+        :root {
+            --primary-color: #ffb7c5; /* Hồng pastel */
+            --secondary-color: #a2d2ff; /* Xanh pastel */
+            --bg-color: #fff9fb;
+            --text-color: #5d5d5d;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #fff1f3 0%, #eef5ff 100%);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Hiệu ứng hoa rơi */
+        .petal {
+            position: fixed;
+            top: -10%;
+            background-color: #ffc0cb;
+            border-radius: 150% 0 150% 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.7;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        h1 {
+            color: #d88a9a;
+            margin-bottom: 25px;
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+            font-weight: 700;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .category {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(216, 138, 154, 0.1);
+            border: 2px solid #ffffff;
+            text-align: left;
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .category:hover {
+            transform: translateY(-5px);
+        }
+
+        .category h2 {
+            font-size: 19px;
+            color: #7a9cc6;
+            margin-top: 0;
+            border-bottom: 2px dashed #f0f0f0;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .category h2::before {
+            content: '🌸';
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .game-link {
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            color: #6a8caf;
+            padding: 14px 18px;
+            margin: 12px 0;
+            text-decoration: none;
+            border-radius: 15px;
+            font-weight: 500;
+            border: 1px solid #f0f4f8;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: all 0.3s ease;
+        }
+
+        .game-link:hover {
+            background: var(--secondary-color);
+            color: white;
+            box-shadow: 0 6px 12px rgba(162, 210, 255, 0.4);
+        }
+
+        .game-link:active {
+            transform: scale(0.97);
+        }
+
+        .footer {
+            font-size: 13px;
+            color: #aaa;
+            margin-top: 30px;
+            padding-bottom: 20px;
+            font-style: italic;
+        }
+
+        /* Responsive cho thiết bị di động nhỏ */
+        @media (max-width: 480px) {
+            body { padding: 15px; }
+            h1 { font-size: 22px; }
+            .category { padding: 15px; }
+            .game-link { padding: 12px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Container cho các cánh hoa -->
+    <div id="petal-container"></div>
+
+    <div class="container">
+        <h1>🎮 KHO GAME TIN HỌC 6</h1>
+        
+        <div class="category">
+            <h2>Bài 1: Thông tin & Dữ liệu</h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/NgoiNhaThongMinh_PhanBietThongTinDuLieu.html">🏠 Ngôi nhà thông minh</a>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/VongQuayTriThuc_Cungco_ThongTinDuLieu.html">🎡 Vòng quay tri thức</a>
+                  <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/TroChoiPhanLoaiSieuToc.html">🎁  Phân Loại Siêu Tốc </a>
+        </div>
+
+        <div class="category">
+            <h2>Bài 2: Xử lý thông tin</h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/MoPhong_Xulithongtin.html">⚙️ Mô phỏng xử lý thông tin</a>
+        </div>
+
+        <div class="category">
+            <h2>Bài 3: Thông tin trong máy tính</h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/MoPhong_MaHoaNhiPhan.html">🔢 Mô phỏng mã hóa nhị phân</a>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/Game_XepQuaVaoXe_1Phut.html">🎁 Xếp quà vào xe (1 phút)</a>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/ThuTaiNhoDonVi.html">🎡 Thử tài nhớ đơn vị</a>
+        </div>
+
+        <div class="category">
+            <h2>Bài 4. Mạng máy tính</h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/VongQuayCungCo.html">🎁 Chinh Phục Vòng Quay Tri Thức</a>
+        </div>        
+
+        <div class="category">
+            <h2>Bài 5. Internet</h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/DuaXeThanToc.html">🏍️ Vù Vù Internet</a>
+        </div>  
+        <div class="category">
+            <h2> Bài 11. Định dạng văn bản </h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/TimHieuVeWord.html">⚙️ Cùng Nhau Tìm Hiểu Định Dạng Văn Bảng </a>
+        </div>  
+        <div class="category">
+            <h2> Bài 12. Trình bày thông tin ở dạng bảng</h2>
+            <a class="game-link" href="https://hainguyen03299-beep.github.io/co-ly-kho-game-tin-hoc/Khoi6-TinHoc/DauTruongBangBieu.html">🎁 Đấu Trường Bảng Biểu </a>
+        </div>  
+        <div class="footer">Thiết kế với ❤️ bởi Cô Lý - Trường Phổ thông Thực hành Sư phạm Đại học Vinh</div>
+    </div>
+
+    <script>
+        function createPetal() {
+            const container = document.getElementById('petal-container');
+            const petal = document.createElement('div');
+            
+            // Các thuộc tính ngẫu nhiên cho cánh hoa
+            const size = Math.random() * 10 + 10 + 'px';
+            const left = Math.random() * 100 + 'vw';
+            const duration = Math.random() * 5 + 5 + 's';
+            const delay = Math.random() * 5 + 's';
+            
+            petal.className = 'petal';
+            petal.style.width = size;
+            petal.style.height = size;
+            petal.style.left = left;
+            petal.style.animationDuration = duration;
+            petal.style.animationDelay = delay;
+            
+            // Màu sắc ngẫu nhiên sắc độ hồng
+            const colors = ['#ffc0cb', '#ffb7c5', '#ffe4e1', '#ffdae0'];
+            petal.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+            container.appendChild(petal);
+
+            // Xóa cánh hoa sau khi rơi xong để tránh nặng máy
+            setTimeout(() => {
+                petal.remove();
+            }, (parseFloat(duration) + parseFloat(delay)) * 1000);
+        }
+
+        // Tạo cánh hoa định kỳ
+        setInterval(createPetal, 400);
+        
+        // Tạo một số cánh hoa ngay khi load trang
+        window.onload = () => {
+            for(let i=0; i<15; i++) createPetal();
+        }
+    </script>
+</body>
+</html>

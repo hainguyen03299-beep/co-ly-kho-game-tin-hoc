@@ -1,0 +1,344 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Trophy, Timer, User, Play, RefreshCw, CheckCircle2, XCircle, Music, Volume2, VolumeX } from 'lucide-react';
+
+// --- Dữ liệu câu hỏi ---
+const KHO_DE = {
+  nhan_biet: [
+    { q: "Trong các lựa chọn sau, đâu là thông tin?", a: ["Con số 25", "Câu “Hôm nay trời mưa”", "Quyển sách", "USB"], c: 1 },
+    { q: "Trong các lựa chọn sau, đâu là dữ liệu?", a: ["Câu “Bạn được điểm 10”", "Số 10", "Quyển vở", "Máy tính"], c: 1 },
+    { q: "Trong các lựa chọn sau, đâu là vật mang tin?", a: ["Bài hát", "Tờ báo", "Nội dung bài học", "Tin nhắn"], c: 1 },
+    { q: "Một câu văn có nghĩa rõ ràng được gọi là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Thiết bị"], c: 1 },
+    { q: "Các con số, chữ cái riêng lẻ được gọi là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 1 },
+    { q: "Thiết bị dùng để lưu trữ thông tin gọi là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Kết quả"], c: 2 },
+    { q: "Trong các lựa chọn sau, đâu là thông tin?", a: ["“30°C”", "“Nhiệt độ hôm nay là 30°C”", "Số 30", "Nhiệt kế"], c: 1 },
+    { q: "Trong các lựa chọn sau, đâu là dữ liệu?", a: ["Một đoạn video", "Một câu chuyện", "Các ký tự A, B, C", "Quyển sách"], c: 2 },
+    { q: "Trong các lựa chọn sau, đâu là vật mang tin?", a: ["Ảnh chụp", "Nội dung bài học", "Ổ cứng", "Tin tức"], c: 2 },
+    { q: "Một đoạn tin nhắn có ý nghĩa là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Máy"], c: 1 },
+    { q: "Các con số nhập vào máy tính được gọi là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 1 },
+    { q: "USB dùng để lưu trữ dữ liệu là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 2 },
+    { q: "Một bức ảnh có nội dung rõ ràng là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Thiết bị"], c: 1 },
+    { q: "Các ký hiệu như @, #, $ là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 1 },
+    { q: "Quyển vở học sinh dùng để ghi chép là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Kết quả"], c: 2 },
+    { q: "Câu “Mai kiểm tra Toán” là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Máy"], c: 1 },
+    { q: "Một dãy số “1, 2, 3, 4” là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 1 },
+    { q: "Thiết bị lưu trữ như thẻ nhớ là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 2 },
+    { q: "Một đoạn video có nội dung là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Máy"], c: 1 },
+    { q: "Các chữ cái riêng lẻ là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Thiết bị"], c: 1 },
+  ],
+  thong_hieu: [
+    { q: "Tại sao câu “Hôm nay trời mưa” được xem là thông tin?", a: ["Vì nó là thiết bị", "Vì nó có ý nghĩa rõ ràng", "Vì nó là con số", "Vì nó là vật lưu trữ"], c: 1 },
+    { q: "Vì sao số “25” chỉ được xem là dữ liệu?", a: ["Vì nó có ý nghĩa đầy đủ", "Vì nó chưa mang ý nghĩa cụ thể", "Vì nó là vật mang tin", "Vì nó là thiết bị"], c: 1 },
+    { q: "Điểm khác nhau giữa dữ liệu và thông tin là gì?", a: ["Dữ liệu có ý nghĩa hơn thông tin", "Thông tin là dữ liệu đã có ý nghĩa", "Dữ liệu là vật mang tin", "Không có khác biệt"], c: 1 },
+    { q: "Trong tình huống: “30°C”, khi nào nó trở thành thông tin?", a: ["Khi đứng riêng lẻ", "Khi lưu trong USB", "Khi gắn với ngữ cảnh (nhiệt độ hôm nay)", "Khi là số"], c: 2 },
+    { q: "Vì sao USB được gọi là vật mang tin?", a: ["Vì nó có nội dung", "Vì nó chứa dữ liệu/thông tin", "Vì nó là dữ liệu", "Vì nó là phần mềm"], c: 1 },
+    { q: "Một đoạn video vừa là dữ liệu vừa là thông tin khi nào?", a: ["Khi chưa xem", "Khi có nội dung được hiểu", "Khi bị xóa", "Khi chưa lưu"], c: 1 },
+    { q: "Tại sao các chữ cái riêng lẻ là dữ liệu?", a: ["Vì có nghĩa hoàn chỉnh", "Vì chưa tạo thành nội dung", "Vì là thiết bị", "Vì là vật mang tin"], c: 1 },
+    { q: "Một cuốn sách được gọi là vật mang tin vì:", a: ["Nó là dữ liệu", "Nó chứa thông tin", "Nó là phần mềm", "Nó là số"], c: 1 },
+    { q: "Điều gì giúp phân biệt thông tin với dữ liệu?", a: ["Kích thước", "Màu sắc", "Ý nghĩa", "Hình dạng"], c: 2 },
+    { q: "Một bảng điểm là thông tin vì:", a: ["Có nhiều số", "Có ý nghĩa về kết quả học tập", "Là giấy", "Là thiết bị"], c: 1 },
+  ],
+  van_dung: [
+    { q: "Lan nhìn thấy số “30” trên nhiệt kế. Khi Lan nói “Nhiệt độ hôm nay là 30°C”, phần nào là thông tin?", a: ["Số 30", "Nhiệt kế", "Câu nói của Lan", "Thang đo"], c: 2 },
+    { q: "Một file ảnh được lưu trong USB. USB đóng vai trò gì?", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Nội dung"], c: 2 },
+    { q: "Minh nhập dãy số 1, 2, 3 vào máy tính để tính tổng. Dãy số này là gì?", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Kết quả"], c: 1 },
+    { q: "Một bài báo viết “Học sinh đạt giải nhất”. Nội dung này là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Thiết bị"], c: 1 },
+    { q: "Trong tình huống xem video trên điện thoại, điện thoại là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 2 },
+    { q: "Một học sinh đọc câu “Mai kiểm tra Toán” và hiểu được. Khi đó câu này là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Thiết bị"], c: 1 },
+    { q: "Một bảng điểm được in ra giấy. Tờ giấy đóng vai trò gì?", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 2 },
+    { q: "Các con số trong bảng điểm (8, 9, 10) là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 1 },
+    { q: "Khi xem ảnh và hiểu nội dung trong ảnh, phần “hiểu được” là:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Máy"], c: 1 },
+    { q: "Một đoạn ghi âm được lưu trong thẻ nhớ. Thẻ nhớ là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 2 },
+    { q: "Nam thấy số “100” nhưng không biết ý nghĩa. Khi đó “100” là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 1 },
+    { q: "Khi giáo viên giải thích “100 là điểm tối đa”, lúc này trở thành:", a: ["Dữ liệu", "Thông tin", "Vật mang tin", "Máy"], c: 1 },
+    { q: "Một bài hát được lưu trong máy tính. File bài hát là:", a: ["Thông tin", "Dữ liệu", "Vật mang tin", "Nội dung"], c: 1 },
+  ]
+};
+
+const App = () => {
+  const [gameState, setGameState] = useState('start'); // start, playing, finished
+  const [fullName, setFullName] = useState('');
+  const [questions, setQuestions] = useState([]);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [timer, setTimer] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [feedback, setFeedback] = useState(null); // { correct: bool }
+  
+  const timerRef = useRef(null);
+  const audioRef = useRef(null);
+
+  // Tạo kho đề 20 câu ngẫu nhiên theo tỉ lệ
+  const generateQuiz = () => {
+    const shuffle = (array) => [...array].sort(() => Math.random() - 0.5);
+    
+    // Tỉ lệ: 30% Nhận biết (6 câu), 30% Thông hiểu (6 câu), 40% Vận dụng (8 câu)
+    const nb = shuffle(KHO_DE.nhan_biet).slice(0, 6);
+    const th = shuffle(KHO_DE.thong_hieu).slice(0, 6);
+    const vd = shuffle(KHO_DE.van_dung).slice(0, 8);
+    
+    const combined = shuffle([...nb, ...th, ...vd]);
+    
+    // Trộn đáp án cho từng câu
+    const finalQuestions = combined.map(item => {
+      const originalAnswer = item.a[item.c];
+      const shuffledOptions = shuffle(item.a);
+      return {
+        q: item.q,
+        options: shuffledOptions,
+        correctIdx: shuffledOptions.indexOf(originalAnswer)
+      };
+    });
+    
+    setQuestions(finalQuestions);
+  };
+
+  const handleStart = () => {
+    if (!fullName.trim()) return;
+    generateQuiz();
+    setGameState('playing');
+    setScore(0);
+    setCurrentIdx(0);
+    setTimer(0);
+    setFeedback(null);
+  };
+
+  const handleAnswer = (idx) => {
+    if (feedback) return;
+    
+    const isCorrect = idx === questions[currentIdx].correctIdx;
+    if (isCorrect) setScore(prev => prev + 0.5);
+    
+    setFeedback({ correct: isCorrect });
+    
+    setTimeout(() => {
+      setFeedback(null);
+      if (currentIdx + 1 < questions.length) {
+        setCurrentIdx(prev => prev + 1);
+      } else {
+        setGameState('finished');
+      }
+    }, 800);
+  };
+
+  // Timer logic
+  useEffect(() => {
+    if (gameState === 'playing') {
+      timerRef.current = setInterval(() => {
+        setTimer(prev => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(timerRef.current);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [gameState]);
+
+  const formatTime = (s) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Hiệu ứng rơi (Stars)
+  const StarsEffect = () => (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {[...Array(20)].map((_, i) => (
+        <div 
+          key={i}
+          className="absolute text-yellow-300 animate-bounce opacity-40"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${-10}%`,
+            animation: `fall ${5 + Math.random() * 10}s linear infinite`,
+            animationDelay: `${Math.random() * 5}s`,
+            fontSize: `${10 + Math.random() * 20}px`
+          }}
+        >
+          ⭐
+        </div>
+      ))}
+      <style>{`
+        @keyframes fall {
+          0% { transform: translateY(0) rotate(0deg); }
+          100% { transform: translateY(110vh) rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
+      <StarsEffect />
+      
+      {/* Background Music Simulation (Visual only since we can't play real mp3 easily) */}
+      <div className="fixed top-4 right-4 z-50">
+        <button 
+          onClick={() => setIsMuted(!isMuted)}
+          className="p-3 bg-white shadow-lg rounded-full hover:bg-slate-100 transition-all border border-slate-200"
+        >
+          {isMuted ? <VolumeX className="w-6 h-6 text-slate-400" /> : <Volume2 className="w-6 h-6 text-indigo-500 animate-pulse" />}
+        </button>
+      </div>
+
+      {/* Main Container */}
+      <div className="w-full max-w-2xl bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border border-white/50 p-6 md:p-10 relative z-10">
+        
+        {/* START SCREEN */}
+        {gameState === 'start' && (
+          <div className="text-center space-y-8 animate-in fade-in zoom-in duration-500">
+            <div className="space-y-2">
+              <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                PHÂN LOẠI SIÊU TỐC
+              </h1>
+              <p className="text-slate-500 font-medium">Thử thách kiến thức về Thông tin & Dữ liệu</p>
+            </div>
+            
+            <div className="flex justify-center py-4">
+              <div className="w-32 h-32 bg-indigo-100 rounded-full flex items-center justify-center animate-bounce">
+                <span className="text-6xl">🚀</span>
+              </div>
+            </div>
+
+            <div className="space-y-4 max-w-sm mx-auto">
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  placeholder="Nhập họ và tên của bạn..." 
+                  className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-indigo-400 focus:outline-none transition-all text-lg font-semibold"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                />
+              </div>
+              <button 
+                onClick={handleStart}
+                disabled={!fullName.trim()}
+                className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg hover:shadow-indigo-200 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                BẮT ĐẦU CHƠI <Play className="w-6 h-6 fill-current" />
+              </button>
+            </div>
+            
+            <div className="pt-4 text-sm text-slate-400 italic">
+              20 câu hỏi ngẫu nhiên • 10 điểm tối đa • Thời gian không giới hạn
+            </div>
+          </div>
+        )}
+
+        {/* PLAYING SCREEN */}
+        {gameState === 'playing' && questions.length > 0 && (
+          <div className="space-y-6 animate-in slide-in-from-right duration-300">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+                <Timer className="w-5 h-5 text-indigo-500" />
+                <span className="font-mono font-bold text-indigo-700">{formatTime(timer)}</span>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Câu hỏi</p>
+                <p className="text-xl font-black text-indigo-600">{currentIdx + 1} <span className="text-slate-300">/ 20</span></p>
+              </div>
+            </div>
+
+            {/* Question Card */}
+            <div className="py-4">
+              <h2 className="text-xl md:text-2xl font-bold leading-relaxed text-slate-700">
+                {questions[currentIdx].q}
+              </h2>
+            </div>
+
+            {/* Answers Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {questions[currentIdx].options.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleAnswer(i)}
+                  disabled={!!feedback}
+                  className={`
+                    p-5 rounded-2xl text-left font-semibold text-lg transition-all border-2 
+                    ${feedback ? 
+                      (i === questions[currentIdx].correctIdx ? 'bg-green-100 border-green-500 text-green-700' : 
+                       (feedback.correct === false && i === questions[currentIdx].selectedIdx ? 'bg-red-100 border-red-500 text-red-700' : 'bg-slate-50 border-slate-100 opacity-50')) 
+                      : 'bg-white border-slate-100 hover:border-indigo-300 hover:bg-indigo-50 shadow-sm'}
+                  `}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 text-sm">
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                    {opt}
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mt-8">
+              <div 
+                className="h-full bg-gradient-to-r from-indigo-400 to-purple-500 transition-all duration-500"
+                style={{ width: `${((currentIdx + 1) / 20) * 100}%` }}
+              />
+            </div>
+
+            {/* Icons Overlay */}
+            {feedback && (
+              <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-20">
+                <div className="animate-ping">
+                  {feedback.correct ? 
+                    <div className="bg-green-500 text-white p-6 rounded-full shadow-2xl"><CheckCircle2 className="w-20 h-20" /></div> : 
+                    <div className="bg-red-500 text-white p-6 rounded-full shadow-2xl"><XCircle className="w-20 h-20" /></div>
+                  }
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* FINISHED SCREEN */}
+        {gameState === 'finished' && (
+          <div className="text-center space-y-8 animate-in zoom-in duration-500">
+            <div className="relative inline-block">
+              <div className="absolute inset-0 bg-yellow-400 blur-3xl opacity-20 animate-pulse"></div>
+              <Trophy className="w-24 h-24 text-yellow-500 mx-auto relative drop-shadow-lg" />
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black text-slate-800">CHÚC MỪNG CHIẾN BINH!</h2>
+              <p className="text-2xl font-bold text-indigo-600">{fullName}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+              <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                <p className="text-slate-400 text-sm font-bold uppercase">Tổng điểm</p>
+                <p className="text-4xl font-black text-indigo-600">{score.toFixed(1)} <span className="text-lg text-slate-400">/ 10</span></p>
+              </div>
+              <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                <p className="text-slate-400 text-sm font-bold uppercase">Thời gian</p>
+                <p className="text-4xl font-black text-purple-600">{formatTime(timer)}</p>
+              </div>
+            </div>
+
+            <div className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 text-indigo-700 italic font-medium">
+              "{score >= 8 ? "Bạn thật xuất sắc! Một bộ não điện tử thực thụ 🧠" : score >= 5 ? "Khá lắm! Cố gắng luyện tập thêm nhé ✨" : "Đừng nản lòng, hãy thử lại để đạt điểm cao hơn! 💪"}"
+            </div>
+
+            <button 
+              onClick={() => setGameState('start')}
+              className="inline-flex items-center gap-2 bg-slate-800 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-slate-700 transition-all hover:scale-105 active:scale-95"
+            >
+              <RefreshCw className="w-5 h-5" /> CHƠI LẠI LƯỢT MỚI
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Footer Branding */}
+      <div className="mt-8 text-slate-400 font-bold tracking-widest text-xs flex items-center gap-2 relative z-10">
+        <span className="w-8 h-px bg-slate-200"></span>
+        TRÒ CHƠI PHÂN LOẠI SIÊU TỐC v1.0
+        <span className="w-8 h-px bg-slate-200"></span>
+      </div>
+    </div>
+  );
+};
+
+export default App;

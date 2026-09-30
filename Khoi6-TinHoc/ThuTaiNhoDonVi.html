@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Ghép Thẻ: Đơn Vị Đo Thông Tin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0fff4; /* Mint green background */
+            background-image: radial-gradient(#c6f6d5 3px, transparent 3px);
+            background-size: 30px 30px;
+        }
+
+        /* Card 3D Flip Effects */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        .card-inner {
+            transition: transform 0.4s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched .card-inner {
+            transform: rotateY(180deg) scale(0.95);
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+
+        /* Modal animations */
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Custom Difficulty Button Shadow */
+        .btn-difficulty {
+            transition: all 0.2s;
+            border-bottom-width: 4px;
+        }
+        .btn-difficulty:active {
+            border-bottom-width: 0px;
+            transform: translateY(4px);
+        }
+
+        /* Tối ưu cỡ chữ: To nhưng không cắt chữ */
+        .card-text-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .card-text {
+            /* Cỡ chữ linh hoạt: to trên máy tính, vừa vặn trên điện thoại */
+            font-size: clamp(0.9rem, 4vw, 2rem); 
+            line-height: 1.1;
+            font-weight: 900;
+            /* Ngăn chặn cắt đôi từ khi xuống dòng */
+            word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: none;
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* Tối đa 3 dòng */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Đảm bảo lưới thẻ cân đối */
+        #game-board {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header Section -->
+    <div class="max-w-4xl w-full text-center mb-6">
+        <h1 class="text-3xl md:text-5xl font-black text-teal-600 mb-4 drop-shadow-md">
+            💎 GHÉP THẺ THÔNG TIN 💎
+        </h1>
+        <div class="flex justify-between items-center bg-white p-4 rounded-3xl shadow-lg border-4 border-teal-100">
+            <div class="text-lg md:text-xl font-bold text-gray-400">
+                Lỗi: <span id="moves-count" class="text-orange-400">0</span>
+            </div>
+            <div class="text-3xl md:text-4xl font-black text-teal-500 flex items-center gap-2">
+                ⏱️ <span id="timer">00:00</span>
+            </div>
+            <button onclick="showStartScreen()" class="bg-teal-400 hover:bg-teal-500 text-white font-bold py-2 px-6 rounded-2xl transition duration-300 transform hover:scale-105 shadow-md border-b-4 border-teal-600">
+                Menu
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Board Container -->
+    <div class="relative w-full min-h-[450px] flex items-center justify-center">
+        <!-- Start Screen Overlay with Difficulty Selection -->
+        <div id="start-screen" class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md rounded-3xl border-4 border-dashed border-teal-200 p-6">
+            <h2 class="text-2xl md:text-3xl font-black text-teal-700 mb-6">Chọn mức độ thử thách</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+                <button onclick="startGame(60, 'Dễ')" class="btn-difficulty bg-green-400 hover:bg-green-500 text-white font-black py-4 px-6 rounded-2xl border-green-600 text-xl flex justify-between items-center">
+                    <span>🍀 Dễ</span>
+                    <span class="text-sm bg-black/10 px-2 py-1 rounded-lg">60s</span>
+                </button>
+                <button onclick="startGame(30, 'Trung bình')" class="btn-difficulty bg-blue-400 hover:bg-blue-500 text-white font-black py-4 px-6 rounded-2xl border-blue-600 text-xl flex justify-between items-center">
+                    <span>📘 Vừa</span>
+                    <span class="text-sm bg-black/10 px-2 py-1 rounded-lg">30s</span>
+                </button>
+                <button onclick="startGame(20, 'Tốc độ')" class="btn-difficulty bg-orange-400 hover:bg-orange-500 text-white font-black py-4 px-6 rounded-2xl border-orange-600 text-xl flex justify-between items-center">
+                    <span>⚡ Tốc độ</span>
+                    <span class="text-sm bg-black/10 px-2 py-1 rounded-lg">20s</span>
+                </button>
+                <button onclick="startGame(10, 'Khó')" class="btn-difficulty bg-red-400 hover:bg-red-500 text-white font-black py-4 px-6 rounded-2xl border-red-600 text-xl flex justify-between items-center">
+                    <span>🔥 Khó</span>
+                    <span class="text-sm bg-black/10 px-2 py-1 rounded-lg">10s</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div id="game-board" class="grid grid-cols-2 sm:grid-cols-5 gap-3 md:gap-4 w-full perspective-1000 p-2 opacity-20 pointer-events-none">
+            <!-- Cards will be generated by JS here -->
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-teal-900 bg-opacity-40 hidden items-center justify-center z-50 transition-opacity backdrop-blur-sm">
+        <div class="bg-white rounded-[3rem] p-8 max-w-sm w-full text-center shadow-2xl modal-enter border-8 border-teal-200 relative overflow-hidden">
+            <h2 id="modal-title" class="text-4xl font-black mb-2 relative z-10"></h2>
+            <p id="modal-message" class="text-gray-600 mb-6 text-xl font-bold relative z-10"></p>
+            <button onclick="showStartScreen()" class="w-full bg-gradient-to-r from-teal-400 to-blue-400 hover:from-teal-500 hover:to-blue-500 text-white font-black py-4 px-6 rounded-2xl transition duration-200 transform hover:scale-105 shadow-lg text-2xl relative z-10 border-b-4 border-teal-600">
+                Tiếp tục thôi!
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const rawData = [
+            { pairId: 1, text1: "Byte (B)", text2: "Bai" },
+            { pairId: 2, text1: "Kilobyte (KB)", text2: "Ki-lô-bai" },
+            { pairId: 3, text1: "Megabyte (MB)", text2: "Mê-ga-bai" },
+            { pairId: 4, text1: "Gigabyte (GB)", text2: "Gi-ga-bai" },
+            { pairId: 5, text1: "Terabyte (TB)", text2: "Tê-ra-bai" }
+        ];
+
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let moves = 0;
+        let timerInterval;
+        let timeLeft = 0;
+        let isPlaying = false;
+        let lockBoard = false;
+        let currentLevel = "";
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'flip') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(450, now);
+                oscillator.frequency.exponentialRampToValueAtTime(650, now + 0.08);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                oscillator.start(now);
+                oscillator.stop(now + 0.08);
+            } 
+            else if (type === 'match') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(523, now);
+                oscillator.frequency.setValueAtTime(783, now + 0.1);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                oscillator.start(now);
+                oscillator.stop(now + 0.3);
+            }
+            else if (type === 'wrong') {
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(100, now);
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.15);
+                oscillator.start(now);
+                oscillator.stop(now + 0.15);
+            }
+            else if (type === 'win') {
+                oscillator.type = 'sine';
+                [523, 659, 783, 1046].forEach((f, i) => oscillator.frequency.setValueAtTime(f, now + i*0.1));
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.6);
+                oscillator.start(now);
+                oscillator.stop(now + 0.6);
+            }
+        }
+
+        function initCards() {
+            cards = [];
+            rawData.forEach(item => {
+                cards.push({ pairId: item.pairId, text: item.text1, type: 'unit' });
+                cards.push({ pairId: item.pairId, text: item.text2, type: 'read' });
+            });
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            cards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card relative w-full aspect-square cursor-pointer transition transform hover:scale-105 active:scale-95';
+                cardEl.dataset.index = index;
+                cardEl.onclick = () => handleCardClick(index);
+                
+                const bgColor = card.type === 'unit' 
+                    ? 'bg-blue-50 text-blue-800 border-blue-200' 
+                    : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                
+                cardEl.innerHTML = `
+                    <div class="card-inner w-full h-full relative transform-style-3d shadow-xl rounded-[1.5rem] md:rounded-[2rem]">
+                        <div class="card-back absolute w-full h-full bg-gradient-to-br from-teal-400 to-blue-400 rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center backface-hidden border-4 border-white">
+                            <span class="text-4xl md:text-6xl text-white font-black drop-shadow-md">?</span>
+                        </div>
+                        <div class="card-front absolute w-full h-full ${bgColor} rounded-[1.5rem] md:rounded-[2rem] flex items-center justify-center backface-hidden rotate-y-180 border-4">
+                            <div class="card-text-container">
+                                <div class="card-text">${card.text}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                board.appendChild(cardEl);
+            });
+        }
+
+        function handleCardClick(index) {
+            if (lockBoard || !isPlaying) return;
+            const cardEl = document.querySelector(`.card[data-index="${index}"]`);
+            if (cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+            playSound('flip');
+            cardEl.classList.add('flipped');
+            flippedCards.push({ index, pairId: cards[index].pairId });
+            if (flippedCards.length === 2) checkMatch();
+        }
+
+        function checkMatch() {
+            lockBoard = true;
+            const [c1, c2] = flippedCards;
+            const el1 = document.querySelector(`.card[data-index="${c1.index}"]`);
+            const el2 = document.querySelector(`.card[data-index="${c2.index}"]`);
+            if (c1.pairId === c2.pairId) {
+                setTimeout(() => {
+                    playSound('match');
+                    el1.classList.add('matched'); el2.classList.add('matched');
+                    matchedPairs++; resetTurn(); checkWin();
+                }, 300);
+            } else {
+                moves++; document.getElementById('moves-count').innerText = moves;
+                setTimeout(() => {
+                    playSound('wrong');
+                    el1.classList.remove('flipped'); el2.classList.remove('flipped');
+                    resetTurn();
+                }, 600);
+            }
+        }
+
+        function resetTurn() { flippedCards = []; lockBoard = false; }
+
+        function updateTimerDisplay() {
+            const s = timeLeft;
+            document.getElementById('timer').innerText = `00:${s.toString().padStart(2, '0')}`;
+            if (timeLeft <= 5) document.getElementById('timer').classList.add('text-red-500', 'animate-pulse');
+            else document.getElementById('timer').classList.remove('text-red-500', 'animate-pulse');
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--; updateTimerDisplay();
+                if (timeLeft <= 0) endGame(false);
+            }, 1000);
+        }
+
+        function checkWin() { if (matchedPairs === rawData.length) endGame(true); }
+
+        function endGame(isWin) {
+            isPlaying = false;
+            clearInterval(timerInterval);
+            const modal = document.getElementById('result-modal');
+            const title = document.getElementById('modal-title');
+            const msg = document.getElementById('modal-message');
+            if (isWin) {
+                playSound('win');
+                title.innerText = "THÀNH CÔNG! ✨";
+                title.className = "text-4xl font-black mb-2 text-teal-600";
+                msg.innerHTML = `Mức độ: <b>${currentLevel}</b><br>Lỗi: <b>${moves}</b> - Còn dư: <b>${timeLeft}s</b>`;
+            } else {
+                title.innerText = "HẾT GIỜ! ⏱️";
+                title.className = "text-4xl font-black mb-2 text-red-500";
+                msg.innerHTML = `Bạn đã rất cố gắng ở mức <b>${currentLevel}</b>.<br>Thử lại lần nữa nhé!`;
+            }
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+
+        function showStartScreen() {
+            isPlaying = false;
+            clearInterval(timerInterval);
+            document.getElementById('result-modal').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('game-board').classList.add('opacity-20', 'pointer-events-none');
+            document.getElementById('timer').innerText = "00:00";
+        }
+
+        function startGame(time, level) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-board').classList.remove('opacity-20', 'pointer-events-none');
+            
+            moves = 0; matchedPairs = 0; timeLeft = time; currentLevel = level;
+            isPlaying = true; lockBoard = false; flippedCards = [];
+            
+            document.getElementById('moves-count').innerText = moves;
+            initCards(); renderBoard(); startTimer();
+        }
+
+        window.onload = () => { initCards(); renderBoard(); };
+    </script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hành trình Xử lý Thông tin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0f7ff;
+            overflow-x: hidden;
+            font-size: 1.1rem; /* Tăng cỡ chữ cơ bản */
+        }
+
+        .stage-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .stage-active {
+            border-color: #3b82f6;
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+        }
+
+        .data-block {
+            position: absolute;
+            width: 80px; /* Tăng chiều rộng khối */
+            height: 50px; /* Tăng chiều cao khối */
+            background: #fbbf24;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem; /* Phông chữ trong khối to hơn */
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .processing-gear {
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .connector {
+            height: 6px; /* Dày hơn một chút */
+            background: #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .connector-active::after {
+            content: '';
+            position: absolute;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            animation: flow 1.5s infinite;
+        }
+
+        @keyframes flow {
+            to { left: 100%; }
+        }
+
+        #notification {
+            transform: translateY(100px);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 1.2rem;
+        }
+
+        #notification.show {
+            transform: translateY(0);
+        }
+
+        /* Tùy chỉnh input to hơn */
+        #userInput {
+            font-size: 1.2rem;
+            padding: 12px;
+        }
+
+        /* Kết quả to rõ ràng */
+        #output-result {
+            font-size: 2rem;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="text-center mb-12">
+        <h1 class="text-5xl font-bold text-blue-800 mb-4">Hành trình Xử lý Thông tin</h1>
+        <p class="text-xl text-gray-600">Khám phá cách máy tính biến dữ liệu thô thành thông tin hữu ích</p>
+    </header>
+
+    <!-- Main Simulation Area -->
+    <main class="w-full max-w-7xl bg-white rounded-3xl shadow-xl p-10 relative overflow-hidden">
+        
+        <!-- Simulation Tracks -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+            
+            <!-- Stage 1: Input -->
+            <div id="stage-input" class="stage-card p-8 rounded-2xl bg-blue-50 flex flex-col items-center text-center">
+                <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white text-3xl mb-6">
+                    <i class="fas fa-keyboard"></i>
+                </div>
+                <h3 class="font-bold text-2xl text-blue-900 mb-3">1. VÀO (Input)</h3>
+                <p class="text-base text-blue-700 mb-6">Thu nhận dữ liệu từ thế giới bên ngoài</p>
+                <input type="text" id="userInput" placeholder="Nhập phép tính hoặc từ..." 
+                    class="w-full border-2 border-blue-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors shadow-sm">
+            </div>
+
+            <!-- Stage 2: Processing -->
+            <div id="stage-processing" class="stage-card p-8 rounded-2xl bg-purple-50 flex flex-col items-center text-center">
+                <div class="w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center text-white text-3xl mb-6 relative">
+                    <i class="fas fa-microchip"></i>
+                    <i class="fas fa-cog absolute -top-1 -right-1 text-base processing-gear"></i>
+                </div>
+                <h3 class="font-bold text-2xl text-purple-900 mb-3">2. XỬ LÝ</h3>
+                <p class="text-base text-purple-700 mb-4">Bộ não máy tính đang làm việc</p>
+                <div id="proc-display" class="h-10 text-lg font-mono text-purple-600 font-semibold italic">Đang chờ...</div>
+            </div>
+
+            <!-- Stage 3: Storage -->
+            <div id="stage-storage" class="stage-card p-8 rounded-2xl bg-green-50 flex flex-col items-center text-center">
+                <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-white text-3xl mb-6">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3 class="font-bold text-2xl text-green-900 mb-3">3. LƯU TRỮ</h3>
+                <p class="text-base text-green-700 mb-4">Ghi nhớ kết quả vào bộ nhớ</p>
+                <div class="w-full bg-green-200 h-4 rounded-full overflow-hidden">
+                    <div id="storage-bar" class="bg-green-600 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Stage 4: Output -->
+            <div id="stage-output" class="stage-card p-8 rounded-2xl bg-orange-50 flex flex-col items-center text-center">
+                <div class="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center text-white text-3xl mb-6">
+                    <i class="fas fa-desktop"></i>
+                </div>
+                <h3 class="font-bold text-2xl text-orange-900 mb-3">4. RA (Output)</h3>
+                <p class="text-base text-orange-700 mb-6">Xuất kết quả cho người dùng</p>
+                <div id="output-result" class="font-bold text-orange-600 min-h-[2.5rem] bg-white w-full rounded-lg shadow-inner flex items-center justify-center border border-orange-100">---</div>
+            </div>
+
+            <!-- Visual Connections (Desktop only) -->
+            <div class="hidden md:block absolute top-[35%] left-[22%] w-[6%] connector" id="conn-1"></div>
+            <div class="hidden md:block absolute top-[35%] left-[47%] w-[6%] connector" id="conn-2"></div>
+            <div class="hidden md:block absolute top-[35%] left-[72%] w-[6%] connector" id="conn-3"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="mt-16 flex justify-center gap-6">
+            <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-bold text-xl transition-all transform hover:scale-105 shadow-lg flex items-center gap-3">
+                <i class="fas fa-play"></i> Bắt đầu Hành trình
+            </button>
+            <button id="resetBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-10 py-4 rounded-2xl font-bold text-xl transition-all">
+                Làm mới
+            </button>
+        </div>
+
+        <!-- Flying Data Block -->
+        <div id="dataBlock" class="data-block">?</div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed bottom-10 bg-red-500 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-4 z-50">
+        <i class="fas fa-exclamation-circle text-2xl"></i>
+        <span id="notif-text">Vui lòng nhập dữ liệu!</span>
+    </div>
+
+    <script>
+        // --- Audio Engine ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playTone(freq, type, duration, volume = 0.1) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        const sounds = {
+            pop: () => playTone(600, 'sine', 0.2),
+            process: () => playTone(200, 'square', 0.1, 0.05),
+            success: () => {
+                playTone(500, 'sine', 0.3);
+                setTimeout(() => playTone(800, 'sine', 0.4), 100);
+            },
+            error: () => playTone(150, 'sawtooth', 0.5)
+        };
+
+        // --- Core Logic ---
+        const userInput = document.getElementById('userInput');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const dataBlock = document.getElementById('dataBlock');
+        const notif = document.getElementById('notification');
+        const outputResult = document.getElementById('output-result');
+        const procDisplay = document.getElementById('proc-display');
+        const storageBar = document.getElementById('storage-bar');
+
+        const stages = {
+            input: document.getElementById('stage-input'),
+            processing: document.getElementById('stage-processing'),
+            storage: document.getElementById('stage-storage'),
+            output: document.getElementById('stage-output')
+        };
+
+        let isRunning = false;
+
+        function showNotification(text) {
+            document.getElementById('notif-text').innerText = text;
+            notif.classList.add('show');
+            sounds.error();
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+
+        async function runSimulation() {
+            const val = userInput.value.trim();
+            if (!val) {
+                showNotification("Bạn chưa nhập dữ liệu vào ô 'Vào' kìa!");
+                return;
+            }
+
+            if (isRunning) return;
+            isRunning = true;
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50');
+
+            // Reset UI
+            Object.values(stages).forEach(s => s.classList.remove('stage-active'));
+            outputResult.innerText = "---";
+            storageBar.style.width = "0%";
+            procDisplay.innerText = "Đang chờ...";
+
+            // 1. INPUT STAGE
+            stages.input.classList.add('stage-active');
+            dataBlock.innerText = val.length > 6 ? val.substring(0, 5) + '..' : val;
+            dataBlock.style.opacity = "1";
+            
+            const startPos = stages.input.getBoundingClientRect();
+            dataBlock.style.left = `${startPos.left + startPos.width/2 - 40}px`;
+            dataBlock.style.top = `${startPos.top + startPos.height/2 - 25}px`;
+            
+            sounds.pop();
+            await wait(1000);
+
+            // 2. MOVE TO PROCESSING
+            await moveBlock(stages.processing);
+            stages.input.classList.remove('stage-active');
+            stages.processing.classList.add('stage-active');
+            
+            let result = "";
+            try {
+                if (/^[0-9+\-*/().\s]+$/.test(val)) {
+                    procDisplay.innerText = "Đang tính toán...";
+                    const interval = setInterval(() => sounds.process(), 150);
+                    await wait(1500);
+                    clearInterval(interval);
+                    result = eval(val);
+                } else {
+                    procDisplay.innerText = "Đang phân tích chữ...";
+                    const interval = setInterval(() => sounds.process(), 150);
+                    await wait(1500);
+                    clearInterval(interval);
+                    result = val.toUpperCase();
+                }
+            } catch (e) {
+                result = "Lỗi!";
+            }
+            
+            dataBlock.innerText = result.toString().length > 6 ? result.toString().substring(0,5) + '..' : result;
+            await wait(500);
+
+            // 3. MOVE TO STORAGE
+            await moveBlock(stages.storage);
+            stages.processing.classList.remove('stage-active');
+            stages.storage.classList.add('stage-active');
+            
+            for(let i=0; i<=100; i+=10) {
+                storageBar.style.width = `${i}%`;
+                if(i%30 === 0) sounds.process();
+                await wait(100);
+            }
+            await wait(500);
+
+            // 4. MOVE TO OUTPUT
+            await moveBlock(stages.output);
+            stages.storage.classList.remove('stage-active');
+            stages.output.classList.add('stage-active');
+            
+            outputResult.innerText = result;
+            dataBlock.style.opacity = "0";
+            sounds.success();
+            
+            isRunning = false;
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50');
+        }
+
+        function moveBlock(targetElement) {
+            return new Promise(resolve => {
+                const targetPos = targetElement.getBoundingClientRect();
+                dataBlock.style.transition = "all 0.8s cubic-bezier(0.4, 0, 0.2, 1)";
+                dataBlock.style.left = `${targetPos.left + targetPos.width/2 - 40}px`;
+                dataBlock.style.top = `${targetPos.top + targetPos.height/2 - 25}px`;
+                
+                setTimeout(resolve, 850);
+            });
+        }
+
+        function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+        startBtn.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            runSimulation();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            location.reload();
+        });
+
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') runSimulation();
+        });
+
+    </script>
+</body>
+</html>

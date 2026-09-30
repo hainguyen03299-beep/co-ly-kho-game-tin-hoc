@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Học Đơn Vị Tin Học - Thử Thách Xếp Quà</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #start-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .truck-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 350px;
+            margin: 0 auto;
+        }
+
+        .truck-body {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 80%;
+            height: 200px;
+            background: #f87171;
+            border: 8px solid #dc2626;
+            border-radius: 15px;
+            z-index: 2;
+        }
+
+        .truck-cabin {
+            position: absolute;
+            bottom: 40px;
+            right: 0;
+            width: 25%;
+            height: 130px;
+            background: #ef4444;
+            border: 8px solid #dc2626;
+            border-radius: 10px 40px 10px 10px;
+            z-index: 2;
+        }
+
+        .led-display {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #22c55e;
+            padding: 5px 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 1.5rem;
+            border: 3px solid #64748b;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .cargo-area {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 5px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .gift-box {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.75rem;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            user-select: none;
+        }
+
+        .gift-box:hover { transform: scale(1.05); }
+        .gift-box::after { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.3); }
+        .gift-box::before { content: ''; position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: rgba(255,255,255,0.3); }
+
+        .box-64 { background-color: #fbbf24; border: 3px solid #d97706; }
+        .box-128 { background-color: #34d399; border: 3px solid #059669; }
+        .box-256 { background-color: #60a5fa; border: 3px solid #2563eb; }
+        .box-512 { background-color: #a78bfa; border: 3px solid #7c3aed; }
+
+        .wheel {
+            position: absolute;
+            bottom: 0;
+            width: 60px;
+            height: 60px;
+            background: #334155;
+            border: 6px solid #94a3b8;
+            border-radius: 50%;
+            z-index: 3;
+        }
+        .wheel-1 { left: 40px; }
+        .wheel-2 { left: 220px; }
+
+        .inventory {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 3px solid #e2e8f0;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .floating-val {
+            position: absolute;
+            font-weight: bold;
+            animation: floatUp 1s forwards;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        .hidden-element { display: none !important; }
+
+        .stat-card {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-bottom: 4px solid #e2e8f0;
+        }
+
+        /* Hiệu ứng Tung Hoa Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            z-index: 300;
+            top: -10px;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Màn hình chào mừng -->
+    <div id="start-screen">
+        <div class="text-8xl mb-6 animate-bounce">🚚</div>
+        <h1 class="text-5xl font-bold mb-4">Thử Thách Xếp Quà 1GB</h1>
+        <p class="text-xl mb-8 opacity-90">Xếp quà vào xe rồi bấm nút "Hoàn thành" để nhận hoa nhé!</p>
+        <button onclick="startGame()" class="bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-6 px-12 rounded-full text-3xl shadow-2xl transform transition hover:scale-110 active:scale-95">
+            BẮT ĐẦU CHƠI 🚀
+        </button>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Stats Header -->
+        <div class="flex flex-wrap justify-center gap-4 mb-8">
+            <div class="stat-card flex flex-col items-center">
+                <span class="text-slate-500 text-sm font-bold">THỜI GIAN</span>
+                <span id="timer" class="text-3xl font-black text-red-500">60s</span>
+            </div>
+            <div class="stat-card flex flex-col items-center">
+                <span class="text-slate-500 text-sm font-bold">ĐIỂM SỐ</span>
+                <span id="score" class="text-3xl font-black text-blue-600">0</span>
+            </div>
+        </div>
+
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-blue-600 mb-2">🚚 Xếp Quà Vào Xe</h1>
+            <p class="text-slate-600 italic">Gợi ý: <span class="text-blue-500 font-bold">1 GB = 1024 MB</span>. Xếp xong hãy nhấn nút bên dưới!</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            
+            <!-- LEFT: TRUCK -->
+            <div class="flex flex-col items-center">
+                <div class="truck-container" id="truck-container">
+                    <div id="status-display" class="led-display">
+                        <span id="display-value">0</span> / 1024 MB
+                    </div>
+                    
+                    <div class="truck-body">
+                        <div id="cargo-hold" class="cargo-area"></div>
+                    </div>
+                    
+                    <div class="truck-cabin">
+                        <div class="absolute top-4 right-4 w-12 h-10 bg-blue-100 rounded-md"></div>
+                    </div>
+                    
+                    <div class="wheel wheel-1"></div>
+                    <div class="wheel wheel-2"></div>
+                </div>
+                
+                <div class="mt-20 w-full flex flex-col items-center gap-4">
+                    <div class="w-full bg-slate-200 rounded-full h-8 overflow-hidden border-4 border-white shadow-inner">
+                        <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-green-600 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    
+                    <button id="finish-btn" onclick="checkCompletion()" class="group relative w-full py-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-2xl rounded-2xl shadow-xl hover:shadow-green-200/50 hover:scale-105 active:scale-95 transition-all duration-200">
+                        <span class="relative z-10">✅ HOÀN THÀNH XẾP HÀNG</span>
+                        <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity rounded-2xl"></div>
+                    </button>
+                    <p id="hint-text" class="text-red-500 font-bold h-6 transition-opacity duration-300 opacity-0">Bé ơi, chưa đủ 1024 MB đâu!</p>
+                </div>
+            </div>
+
+            <!-- RIGHT: INVENTORY -->
+            <div class="space-y-6">
+                <div class="inventory">
+                    <h2 class="text-2xl font-bold text-slate-700 mb-6 flex items-center gap-2">
+                        <span>🎁</span> Kho Hàng
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                        <div onclick="addBox(64)" class="flex flex-col items-center gap-2 cursor-pointer group">
+                            <div class="gift-box box-64 w-16 h-16 text-lg shadow-md group-hover:scale-110">64MB</div>
+                        </div>
+                        <div onclick="addBox(128)" class="flex flex-col items-center gap-2 cursor-pointer group">
+                            <div class="gift-box box-128 w-16 h-16 text-lg shadow-md group-hover:scale-110">128MB</div>
+                        </div>
+                        <div onclick="addBox(256)" class="flex flex-col items-center gap-2 cursor-pointer group">
+                            <div class="gift-box box-256 w-16 h-16 text-lg shadow-md group-hover:scale-110">256MB</div>
+                        </div>
+                        <div onclick="addBox(512)" class="flex flex-col items-center gap-2 cursor-pointer group">
+                            <div class="gift-box box-512 w-16 h-16 text-lg shadow-md group-hover:scale-110">512MB</div>
+                        </div>
+                    </div>
+                    <button onclick="resetGame()" class="w-full py-2 text-slate-400 font-bold hover:text-red-500 transition underline">
+                        Xếp lại từ đầu 🔄
+                    </button>
+                </div>
+
+                <!-- Bảng xếp hạng -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg border-2 border-slate-100">
+                    <h2 class="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <span>🏆</span> Bảng Xếp Hạng
+                    </h2>
+                    <div id="leaderboard-list" class="space-y-2">
+                        <p class="text-slate-400 italic text-sm">Chưa có ai ghi tên...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thắng cuộc -->
+    <div id="win-modal" class="hidden-element fixed inset-0 bg-black/70 z-[400] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border-t-8 border-yellow-400 animate-pop relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-200 rounded-full opacity-20"></div>
+            <div class="absolute -bottom-10 -left-10 w-24 h-24 bg-blue-200 rounded-full opacity-20"></div>
+            
+            <div class="text-7xl mb-4">🌈</div>
+            <h2 class="text-4xl font-black text-slate-800 mb-2">XUẤT SẮC!</h2>
+            <p class="text-slate-600 mb-6 text-xl italic">"Bé đã hoàn thành thử thách 1024 MB!"</p>
+            
+            <div class="bg-blue-50 rounded-2xl p-4 mb-6 grid grid-cols-2 gap-4">
+                <div class="text-center">
+                    <p class="text-xs text-blue-500 font-bold uppercase">Thời gian còn</p>
+                    <p id="win-time" class="text-2xl font-black text-blue-700">0s</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-blue-500 font-bold uppercase">Tổng Điểm</p>
+                    <p id="final-score" class="text-2xl font-black text-blue-700">0</p>
+                </div>
+            </div>
+
+            <input id="player-name" type="text" placeholder="Ghi tên Bé vào bảng vàng..." class="w-full p-4 border-2 border-slate-200 rounded-xl mb-4 focus:border-yellow-500 outline-none text-center font-bold">
+            
+            <button onclick="saveScore()" class="w-full py-5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black text-2xl rounded-2xl shadow-lg hover:brightness-110 transition active:scale-95">
+                LƯU ĐIỂM & CHƠI TIẾP 🎊
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Thua cuộc -->
+    <div id="lose-modal" class="hidden-element fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-t-8 border-red-500 animate-pop">
+            <div class="text-6xl mb-4">⏰</div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">HẾT GIỜ!</h2>
+            <p class="text-slate-600 mb-6">Bé chưa kịp bấm nút Hoàn thành rồi. Cố lên nhé!</p>
+            <button onclick="closeLoseModal()" class="w-full py-4 bg-red-500 text-white font-bold text-xl rounded-2xl shadow-lg hover:bg-red-600 transition">
+                Thử lại lần nữa 💪
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentTotal = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let gameActive = false;
+        let timerId = null;
+        let leaderboard = [];
+
+        const targetTotal = 1024;
+        const cargoHold = document.getElementById('cargo-hold');
+        const displayValue = document.getElementById('display-value');
+        const progressBar = document.getElementById('progress-bar');
+        const winModal = document.getElementById('win-modal');
+        const loseModal = document.getElementById('lose-modal');
+        const startScreen = document.getElementById('start-screen');
+        const timerText = document.getElementById('timer');
+        const scoreText = document.getElementById('score');
+        const hintText = document.getElementById('hint-text');
+        const statusDisplay = document.getElementById('status-display');
+        const truckContainer = document.getElementById('truck-container');
+
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Phát âm thanh
+        function playSound(freq, type = 'sine', duration = 0.2, volume = 0.05) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // Nhạc chúc mừng
+        function playVictoryTheme() {
+            const notes = [
+                {f: 523.25, d: 0.2}, {f: 523.25, d: 0.2}, {f: 523.25, d: 0.2},
+                {f: 659.25, d: 0.4}, {f: 783.99, d: 0.4},
+                {f: 523.25, d: 0.2}, {f: 783.99, d: 0.6}
+            ];
+            notes.forEach((note, i) => {
+                setTimeout(() => playSound(note.f, 'triangle', note.d, 0.1), i * 200);
+            });
+        }
+
+        function startGame() {
+            initAudio();
+            startScreen.classList.add('hidden-element');
+            resetGame();
+            gameActive = true;
+            startTimer();
+            playSound(523.25, 'sine', 0.5);
+        }
+
+        function startTimer() {
+            if(timerId) clearInterval(timerId);
+            timerId = setInterval(() => {
+                if(!gameActive) return;
+                timeLeft--;
+                timerText.innerText = timeLeft + "s";
+                
+                if(timeLeft <= 10) {
+                    timerText.classList.add('animate-pulse');
+                    playSound(200, 'sine', 0.05, 0.02);
+                }
+
+                if(timeLeft <= 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function addBox(size) {
+            if (!gameActive) return;
+            if (currentTotal + size > 2048) return; // Cho phép xếp quá để bé tự căn chỉnh
+
+            currentTotal += size;
+            score += Math.floor(size / 4); 
+            createBoxElement(size);
+            updateUI();
+            showFloatingText(`+${size}MB`, "#22c55e");
+            playSound(400 + size, 'square', 0.2, 0.03);
+            hideHint();
+        }
+
+        function removeBox(element, size) {
+            if (!gameActive) return;
+            currentTotal -= size;
+            score = Math.max(0, score - 5);
+            element.classList.add('scale-0');
+            setTimeout(() => element.remove(), 200);
+            updateUI();
+            showFloatingText(`-${size}MB`, "#ef4444");
+            playSound(300, 'sine', 0.2, 0.03);
+            hideHint();
+        }
+
+        function createBoxElement(size) {
+            const box = document.createElement('div');
+            box.className = `gift-box box-${size} animate-pop`;
+            box.innerText = `${size}MB`;
+            box.onclick = () => removeBox(box, size);
+            cargoHold.appendChild(box);
+        }
+
+        function updateUI() {
+            displayValue.innerText = currentTotal;
+            scoreText.innerText = score;
+            const progress = Math.min((currentTotal / targetTotal) * 100, 100);
+            progressBar.style.width = progress + "%";
+            
+            if (currentTotal > targetTotal) {
+                statusDisplay.style.color = "#ef4444";
+                progressBar.classList.add('bg-orange-500');
+            } else if (currentTotal === targetTotal) {
+                statusDisplay.style.color = "#fbbf24";
+                progressBar.classList.add('bg-yellow-400');
+            } else {
+                statusDisplay.style.color = "#22c55e";
+                progressBar.classList.remove('bg-orange-500', 'bg-yellow-400');
+            }
+        }
+
+        function showFloatingText(text, color) {
+            const float = document.createElement('div');
+            float.className = 'floating-val';
+            float.innerText = text;
+            float.style.left = `50%`;
+            float.style.top = `-20px`;
+            float.style.color = color;
+            statusDisplay.appendChild(float);
+            setTimeout(() => float.remove(), 1000);
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 120; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                conf.style.animation = `confetti-fall ${2 + Math.random() * 3}s linear forwards`;
+                conf.style.delay = Math.random() * 2 + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 5000);
+            }
+        }
+
+        function checkCompletion() {
+            if (!gameActive) return;
+
+            if (currentTotal === targetTotal) {
+                endGame(true);
+            } else {
+                // Sai số lượng
+                playSound(100, 'sawtooth', 0.3, 0.1);
+                truckContainer.classList.add('shake');
+                hintText.style.opacity = "1";
+                hintText.innerText = currentTotal < targetTotal ? 
+                    `Thiếu ${targetTotal - currentTotal} MB nữa bé ơi!` : 
+                    `Thừa ${currentTotal - targetTotal} MB rồi, bỏ bớt ra nhé!`;
+                
+                setTimeout(() => {
+                    truckContainer.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        function hideHint() {
+            hintText.style.opacity = "0";
+        }
+
+        function endGame(isWin) {
+            gameActive = false;
+            clearInterval(timerId);
+            if (isWin) {
+                const timeBonus = timeLeft * 100;
+                score += timeBonus;
+                scoreText.innerText = score;
+                document.getElementById('final-score').innerText = score;
+                document.getElementById('win-time').innerText = timeLeft + "s";
+                
+                winModal.classList.remove('hidden-element');
+                winModal.classList.add('flex');
+                
+                playVictoryTheme();
+                createConfetti();
+            } else {
+                loseModal.classList.remove('hidden-element');
+                loseModal.classList.add('flex');
+                playSound(150, 'sawtooth', 0.5, 0.05);
+            }
+        }
+
+        function saveScore() {
+            const name = document.getElementById('player-name').value.trim() || "Bé Thông Thái";
+            leaderboard.push({ name, score });
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 5);
+            updateLeaderboardUI();
+            
+            winModal.classList.add('hidden-element');
+            winModal.classList.remove('flex');
+            document.getElementById('player-name').value = "";
+            resetGame();
+            startGame();
+        }
+
+        function updateLeaderboardUI() {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = leaderboard.map((item, index) => `
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border-l-4 border-yellow-400 animate-pop">
+                    <span class="font-bold text-slate-700">${index + 1}. ${item.name}</span>
+                    <span class="font-black text-blue-600">${item.score} đ</span>
+                </div>
+            `).join('');
+        }
+
+        function resetGame() {
+            currentTotal = 0;
+            score = 0;
+            timeLeft = 60;
+            cargoHold.innerHTML = '';
+            timerText.innerText = "60s";
+            timerText.classList.remove('animate-pulse');
+            hideHint();
+            updateUI();
+        }
+
+        function closeLoseModal() {
+            loseModal.classList.add('hidden-element');
+            loseModal.classList.remove('flex');
+            startGame();
+        }
+    </script>
+</body>
+</html>

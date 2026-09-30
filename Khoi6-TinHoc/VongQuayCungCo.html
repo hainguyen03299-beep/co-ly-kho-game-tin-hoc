@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vòng Quay May Mắn Mạng Máy Tính</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #fff5f7;
+            overflow-x: hidden;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: min(85vw, 450px);
+            height: min(85vw, 450px);
+            margin: 0 auto;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 10px solid #ffb7c5;
+            box-shadow: 0 0 30px rgba(255, 183, 197, 0.6);
+            transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1);
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 50px;
+            background: #ff6b81;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 40;
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: white;
+            border: 4px solid #ffb7c5;
+            border-radius: 50%;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .slice {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            transform-origin: 50% 50%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .slice-text {
+            position: relative;
+            z-index: 10;
+            margin-top: 45px;
+            transform-origin: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: #4a4a4a;
+            max-width: 90px;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        .spin-button {
+            transition: all 0.2s;
+            background: #ff8fa3;
+            box-shadow: 0 6px 0 #e67a8e;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            background: #ff7a91;
+            transform: translateY(-2px);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #e67a8e;
+        }
+
+        .spin-button:disabled {
+            background: #cbd5e0;
+            box-shadow: 0 4px 0 #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .decor {
+            position: absolute;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 2rem;
+            text-align: center;
+            max-width: 85%;
+            width: 340px;
+            border: 6px solid #ffb7c5;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="decor top-5 left-5 text-4xl">☁️</div>
+    <div class="decor top-20 right-5 text-5xl">✨</div>
+    <div class="decor bottom-10 left-10 text-4xl">🌸</div>
+
+    <header class="text-center mb-6">
+        <h1 class="text-3xl font-bold text-[#ff6b81] mb-1">
+            🌸 Vòng Quay May Mắn 🌸
+        </h1>
+        <p class="text-[#ff8fa3] text-sm">Chủ đề: Mạng máy tính</p>
+    </header>
+
+    <div class="wheel-container mb-8">
+        <div class="pointer"></div>
+        <div id="wheel"></div>
+        <div class="center-dot">⭐</div>
+    </div>
+
+    <button id="spinBtn" class="spin-button text-white px-12 py-4 rounded-full text-xl font-bold uppercase tracking-wider">
+        Quay ngay!
+    </button>
+
+    <div id="history" class="mt-8 w-full max-w-sm bg-white/90 p-4 rounded-2xl shadow-md border border-pink-100">
+        <h2 class="text-[#ff8fa3] font-bold mb-3 flex items-center">
+            <span class="mr-2">📝</span> Lịch sử:
+        </h2>
+        <ul id="historyList" class="text-sm text-gray-600 space-y-2">
+            <li class="italic text-gray-400 text-center">Chưa quay lượt nào</li>
+        </ul>
+    </div>
+
+    <div id="resultModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="text-4xl mb-2">🎉</div>
+            <h2 class="text-xl font-bold text-[#ff6b81] mb-1">Kết quả</h2>
+            <p class="text-gray-500 text-sm mb-3">Chủ đề của bạn là:</p>
+            <div id="resultText" class="text-xl font-bold text-[#ff8fa3] mb-6"></div>
+            <button onclick="closeModal()" class="bg-[#ff8fa3] text-white w-full py-3 rounded-xl font-bold shadow-md">
+                Đóng
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const prizes = [
+            { text: 'Điểm thưởng "Băng thông"', color: '#ffcad4' },
+            { text: '"Mất tín hiệu"', color: '#f0f0f0' },
+            { text: 'Khái niệm Mạng máy tính', color: '#b8c0ff' },
+            { text: 'Lợi ích Mạng máy tính', color: '#9bf6ff' },
+            { text: 'Thiết bị đầu cuối', color: '#ffd6a5' },
+            { text: 'Thiết bị kết nối', color: '#fdffb6' },
+            { text: 'Phần mềm mạng', color: '#a0c4ff' }
+        ];
+
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spinBtn');
+        const resultModal = document.getElementById('resultModal');
+        const resultText = document.getElementById('resultText');
+        const historyList = document.getElementById('historyList');
+
+        const numSlices = prizes.length;
+        const sliceAngle = 360 / numSlices;
+
+        // Audio System using Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(freq, type, duration, volume = 0.1) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            
+            gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        function playTick() {
+            playSound(600, 'sine', 0.1, 0.05);
+        }
+
+        function playWinSound() {
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                gain.gain.setValueAtTime(0.1, now + i * 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + i * 0.1);
+                osc.stop(now + i * 0.1 + 0.5);
+            });
+        }
+
+        function createWheel() {
+            wheel.innerHTML = '';
+            prizes.forEach((prize, i) => {
+                const rotation = i * sliceAngle;
+                const sliceEl = document.createElement('div');
+                sliceEl.className = 'slice';
+                sliceEl.style.transform = `rotate(${rotation}deg)`;
+
+                const svgNS = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNS, "svg");
+                svg.setAttribute("viewBox", "0 0 100 100");
+                svg.style.position = "absolute";
+                svg.style.width = "100%";
+                svg.style.height = "100%";
+
+                const path = document.createElementNS(svgNS, "path");
+                const x1 = 50 + 50 * Math.cos(Math.PI * (-90 - sliceAngle / 2) / 180);
+                const y1 = 50 + 50 * Math.sin(Math.PI * (-90 - sliceAngle / 2) / 180);
+                const x2 = 50 + 50 * Math.cos(Math.PI * (-90 + sliceAngle / 2) / 180);
+                const y2 = 50 + 50 * Math.sin(Math.PI * (-90 + sliceAngle / 2) / 180);
+                
+                const d = `M 50 50 L ${x1} ${y1} A 50 50 0 0 1 ${x2} ${y2} Z`;
+                path.setAttribute("d", d);
+                path.setAttribute("fill", prize.color);
+                path.setAttribute("stroke", "rgba(255,255,255,0.4)");
+                path.setAttribute("stroke-width", "0.5");
+
+                svg.appendChild(path);
+                sliceEl.appendChild(svg);
+
+                const textContainer = document.createElement('div');
+                textContainer.className = 'slice-text';
+                textContainer.innerText = prize.text;
+                
+                sliceEl.appendChild(textContainer);
+                wheel.appendChild(sliceEl);
+            });
+        }
+
+        createWheel();
+
+        let currentRotation = 0;
+        let isSpinning = false;
+        let lastTickIndex = -1;
+
+        function checkTick(rotation) {
+            // Calculate which slice is currently under the pointer
+            const normalizedRotation = rotation % 360;
+            const currentIndex = Math.floor(((360 - normalizedRotation % 360) + (sliceAngle / 2)) % 360 / sliceAngle);
+            
+            if (currentIndex !== lastTickIndex) {
+                playTick();
+                lastTickIndex = currentIndex;
+                // Haptic feedback if supported
+                if (navigator.vibrate) navigator.vibrate(5);
+            }
+        }
+
+        spinBtn.addEventListener('click', () => {
+            if (isSpinning) return;
+            
+            // Resume AudioContext (required for browsers)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            const extraSpin = 1800 + Math.floor(Math.random() * 360);
+            const startRotation = currentRotation;
+            const targetRotation = currentRotation + extraSpin;
+            
+            const startTime = performance.now();
+            const duration = 4000;
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Ease out cubic
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentPos = startRotation + (extraSpin * easeOut);
+                
+                wheel.style.transform = `rotate(${currentPos}deg)`;
+                checkTick(currentPos);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentRotation = targetRotation;
+                    finishSpin();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        });
+
+        function finishSpin() {
+            isSpinning = false;
+            spinBtn.disabled = false;
+            
+            playWinSound();
+
+            const normalizedRotation = currentRotation % 360;
+            const winningIndex = Math.floor(((360 - normalizedRotation % 360) + (sliceAngle / 2)) % 360 / sliceAngle);
+            const finalIndex = winningIndex % numSlices;
+            const winner = prizes[finalIndex];
+
+            showResult(winner.text);
+            addToHistory(winner.text);
+        }
+
+        function showResult(text) {
+            resultText.innerText = text;
+            resultModal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            resultModal.style.display = 'none';
+        }
+
+        function addToHistory(text) {
+            if (historyList.innerHTML.includes('Chưa quay lượt nào')) {
+                historyList.innerHTML = '';
+            }
+            const li = document.createElement('li');
+            const now = new Date();
+            const time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+            li.className = "flex items-center p-2 bg-pink-50 rounded-lg border-l-4 border-pink-300 transition-all transform hover:scale-105";
+            li.innerHTML = `<span class="font-bold text-pink-400 mr-2">${time}</span> <span>${text}</span>`;
+            historyList.prepend(li);
+        }
+    </script>
+</body>
+</html>

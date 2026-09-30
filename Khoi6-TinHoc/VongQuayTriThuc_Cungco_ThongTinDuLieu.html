@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="vi">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vòng Quay Tri Thức - Thông Tin &amp; Dữ Liệu</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #ff6b6b 75%, #4ecdc4 100%);
+            background-size: 400% 400%;
+            animation: rainbow-gradient 3s ease infinite;
+        }
+        
+        @keyframes rainbow-gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .card-shadow {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .wheel {
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 8px solid #fff;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+        }
+        
+        .wheel-section {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            transform-origin: 160px 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+        }
+        
+        .wheel-section:nth-child(1) {
+            background: #ff6b6b;
+            transform: rotate(0deg);
+        }
+        
+        .wheel-section:nth-child(2) {
+            background: #4ecdc4;
+            transform: rotate(90deg);
+        }
+        
+        .wheel-section:nth-child(3) {
+            background: #45b7d1;
+            transform: rotate(180deg);
+        }
+        
+        .wheel-section:nth-child(4) {
+            background: #f9ca24;
+            transform: rotate(270deg);
+        }
+        
+        .wheel-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -70%);
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            text-align: center;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 25px solid #fff;
+            z-index: 10;
+        }
+        
+        .spin-animation {
+            animation: spin 3s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(1440deg); }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #f39c12;
+            animation: confetti-fall 3s linear forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100%) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100%) rotate(720deg);
+                opacity: 0;
+            }
+        }
+        
+        .continuous-fireworks {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: fireworks-fall 4s linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes fireworks-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.8;
+                transform: translateY(50vh) rotate(360deg) scale(1.2);
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .bounce-in {
+            animation: bounceIn 0.6s ease-out;
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .certificate {
+            background: linear-gradient(45deg, #fff 0%, #f8f9fa 100%);
+            border: 8px solid #ffd700;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e, #ffd700);
+            z-index: -1;
+            border-radius: 20px;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="gradient-bg min-h-full">
+  <main class="container mx-auto px-4 py-6"><!-- Header -->
+   <header class="text-center mb-6">
+    <h1 id="gameTitle" class="text-4xl font-bold text-white mb-2">🎮 Vòng Quay Tri Thức</h1>
+    <p class="text-xl text-white opacity-90">Thông Tin &amp; Dữ Liệu</p>
+   </header><!-- Student Info -->
+   <div id="studentInfo" class="bg-white rounded-2xl p-6 mb-6 card-shadow text-center">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">👨‍🎓 Thông tin học sinh</h2>
+    <div class="flex gap-4 max-w-md mx-auto"><input type="text" id="studentName" placeholder="Tên học sinh" class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-lg"> <input type="text" id="studentClass" placeholder="Lớp (VD: 6A1)" class="w-24 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-lg">
+    </div><button onclick="startGame()" class="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"> 🚀 Bắt đầu chơi </button>
+   </div><!-- Game Screen -->
+   <div id="gameScreen" class="hidden"><!-- Progress Bar -->
+    <div class="bg-white rounded-2xl p-4 mb-6 card-shadow">
+     <div class="flex justify-between items-center mb-2"><span class="font-bold text-gray-700">Tiến độ:</span> <span id="progressText" class="font-bold text-blue-600">Câu 1/10</span>
+     </div>
+     <div class="bg-gray-200 rounded-full h-3">
+      <div id="progressBar" class="progress-bar w-0"></div>
+     </div>
+    </div><!-- Score Display -->
+    <div class="bg-white rounded-2xl p-4 mb-6 card-shadow text-center">
+     <div class="flex justify-center items-center gap-6">
+      <div class="text-center">
+       <div class="text-3xl font-bold text-blue-600" id="currentScore">
+        0
+       </div>
+       <div class="text-sm text-gray-600">
+        Điểm hiện tại
+       </div>
+      </div>
+      <div class="text-center">
+       <div class="text-2xl font-bold text-green-600" id="correctAnswers">
+        0
+       </div>
+       <div class="text-sm text-gray-600">
+        Câu đúng
+       </div>
+      </div>
+     </div>
+    </div><!-- Question Card -->
+    <div id="questionCard" class="bg-white rounded-2xl p-6 mb-6 card-shadow">
+     <h3 class="text-xl font-bold text-gray-800 mb-4" id="questionText"></h3>
+     <div id="answersContainer" class="space-y-3"></div>
+    </div><!-- Wrong Answer Notification -->
+    <div id="wrongAnswerNotification" class="hidden bg-white rounded-2xl p-8 mb-6 card-shadow text-center border-4 border-orange-400">
+     <div class="text-6xl mb-4">
+      😔
+     </div>
+     <h3 class="text-2xl font-bold text-orange-600 mb-4">Câu trả lời chưa chính xác!</h3>
+     <p class="text-lg text-gray-700 mb-6">Đừng lo lắng! Hãy mời bạn tiếp theo thử sức nhé! 🤗</p><button onclick="continueToNextQuestion()" class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-3 rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"> 👥 Tiếp tục </button>
+    </div><!-- Wheel Section -->
+    <div id="wheelSection" class="hidden bg-white rounded-2xl p-6 mb-6 card-shadow text-center">
+     <h3 class="text-2xl font-bold text-green-600 mb-4">🎉 Chúc mừng! Hãy quay vòng may mắn!</h3>
+     <div class="flex justify-center mb-6">
+      <div class="relative">
+       <div class="wheel-pointer"></div>
+       <div id="wheel" class="wheel">
+        <div class="wheel-section">
+         <div class="wheel-text">
+          🎁<br>
+          Nhận<br>
+          quà
+         </div>
+        </div>
+        <div class="wheel-section">
+         <div class="wheel-text">
+          👏<br>
+          Vỗ<br>
+          tay
+         </div>
+        </div>
+        <div class="wheel-section">
+         <div class="wheel-text">
+          💌<br>
+          Lời<br>
+          chúc
+         </div>
+        </div>
+        <div class="wheel-section">
+         <div class="wheel-text">
+          ❌<br>
+          Mất<br>
+          lượt
+         </div>
+        </div>
+       </div>
+      </div>
+     </div><button onclick="spinWheel()" id="spinButton" class="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"> 🎡 Quay vòng may mắn </button>
+    </div><!-- Result Display -->
+    <div id="resultDisplay" class="hidden bg-white rounded-2xl p-6 mb-6 card-shadow text-center">
+     <div id="resultContent"></div><button onclick="nextQuestion()" id="nextButton" class="mt-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"> ➡️ Câu tiếp theo </button>
+    </div>
+   </div><!-- Certificate Screen -->
+   <div id="certificateScreen" class="hidden">
+    <div class="certificate p-8 mx-auto max-w-2xl text-center bounce-in">
+     <h1 class="text-4xl font-bold text-yellow-600 mb-4">🏆 GIẤY CHỨNG NHẬN</h1>
+     <div class="text-2xl font-bold text-gray-800 mb-4">
+      HOÀN THÀNH TRÒ CHƠI
+     </div>
+     <div class="my-6">
+      <div class="text-lg text-gray-700 mb-2">
+       Chúc mừng em
+      </div>
+      <div id="certStudentName" class="text-3xl font-bold text-blue-600 mb-2"></div>
+      <div id="certStudentClass" class="text-xl text-gray-600 mb-4"></div>
+     </div>
+     <div class="bg-yellow-50 rounded-xl p-4 mb-6">
+      <div class="text-lg text-gray-700 mb-2">
+       Tổng điểm đạt được:
+      </div>
+      <div id="finalScore" class="text-4xl font-bold text-green-600 mb-2"></div>
+      <div id="scoreComment" class="text-xl font-bold"></div>
+     </div>
+     <div class="text-lg text-gray-700 mb-6">
+      Em đã hoàn thành xuất sắc bài học về<br><strong>"Phân biệt Thông tin, Dữ liệu và Vật mang tin"</strong>
+     </div>
+     <div class="flex justify-center gap-4"><button onclick="restartGame()" class="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 transform hover:scale-105"> 🔄 Chơi lại </button> <button onclick="newStudent()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 transform hover:scale-105"> 👨‍🎓 Học sinh mới </button>
+     </div>
+    </div>
+   </div>
+  </main>
+  <script>
+        // Game configuration
+        const defaultConfig = {
+            game_title: "🎮 Vòng Quay Tri Thức",
+            student_name: "",
+            student_class: ""
+        };
+
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let correctCount = 0;
+        let studentName = "";
+        let studentClass = "";
+
+        // Questions database
+        const questions = [
+            {
+                question: "Dữ liệu là gì?",
+                answers: [
+                    { text: "Thông tin đã được xử lý", correct: false },
+                    { text: "Sự kiện, con số chưa được xử lý", correct: true },
+                    { text: "Vật mang tin", correct: false },
+                    { text: "Máy tính", correct: false }
+                ]
+            },
+            {
+                question: "Đâu là ví dụ về thông tin?",
+                answers: [
+                    { text: "Nhiệt độ hôm nay là 35°C", correct: true },
+                    { text: "Số 35", correct: false },
+                    { text: "Quyển sách", correct: false },
+                    { text: "Đĩa CD", correct: false }
+                ]
+            },
+            {
+                question: "Vật mang tin là gì?",
+                answers: [
+                    { text: "Dữ liệu thô", correct: false },
+                    { text: "Phương tiện lưu trữ/truyền tải thông tin", correct: true },
+                    { text: "Thông tin đã xử lý", correct: false },
+                    { text: "Máy tính xử lý", correct: false }
+                ]
+            },
+            {
+                question: "Đâu là ví dụ về dữ liệu?",
+                answers: [
+                    { text: "Bảng điểm của lớp", correct: false },
+                    { text: "Số 8, 9, 10", correct: true },
+                    { text: "USB", correct: false },
+                    { text: "Kết quả học tập xuất sắc", correct: false }
+                ]
+            },
+            {
+                question: "Đâu là vật mang tin?",
+                answers: [
+                    { text: "Tin nhắn", correct: false },
+                    { text: "Điểm số", correct: false },
+                    { text: "Điện thoại", correct: true },
+                    { text: "Thông báo", correct: false }
+                ]
+            },
+            {
+                question: "Khi nào dữ liệu trở thành thông tin?",
+                answers: [
+                    { text: "Khi được lưu trữ", correct: false },
+                    { text: "Khi được xử lý và có ý nghĩa", correct: true },
+                    { text: "Khi được in ra giấy", correct: false },
+                    { text: "Khi được gửi đi", correct: false }
+                ]
+            },
+            {
+                question: "Đâu KHÔNG phải là vật mang tin?",
+                answers: [
+                    { text: "Sách vở", correct: false },
+                    { text: "Đài radio", correct: false },
+                    { text: "Bảng điểm", correct: true },
+                    { text: "Thẻ nhớ", correct: false }
+                ]
+            },
+            {
+                question: "Ví dụ nào sau đây là thông tin?",
+                answers: [
+                    { text: "Số 25", correct: false },
+                    { text: "Tuổi của bạn là 12", correct: true },
+                    { text: "Quyển vở", correct: false },
+                    { text: "Máy tính", correct: false }
+                ]
+            },
+            {
+                question: "Dữ liệu và thông tin khác nhau như thế nào?",
+                answers: [
+                    { text: "Không có sự khác biệt", correct: false },
+                    { text: "Dữ liệu thô, thông tin đã xử lý có ý nghĩa", correct: true },
+                    { text: "Thông tin thô, dữ liệu đã xử lý", correct: false },
+                    { text: "Chỉ khác về tên gọi", correct: false }
+                ]
+            },
+            {
+                question: "Đâu là chuỗi: Dữ liệu → Thông tin → Vật mang tin?",
+                answers: [
+                    { text: "35 → Nhiệt độ 35°C → Nhiệt kế", correct: true },
+                    { text: "Sách → Chữ → Kiến thức", correct: false },
+                    { text: "USB → File → Dữ liệu", correct: false },
+                    { text: "Máy tính → Số → Kết quả", correct: false }
+                ]
+            }
+        ];
+
+        // Wheel prizes
+        const prizes = [
+            { name: "🎁 Nhận quà", points: 15, color: "#ff6b6b" },
+            { name: "👏 Tràng vỗ tay", points: 10, color: "#4ecdc4" },
+            { name: "💌 Lời chúc", points: 5, color: "#45b7d1" },
+            { name: "❌ Mất lượt", points: 0, color: "#f9ca24" }
+        ];
+
+        function startGame() {
+            studentName = document.getElementById('studentName').value.trim();
+            studentClass = document.getElementById('studentClass').value.trim();
+            
+            if (!studentName) {
+                showToast("Vui lòng nhập tên học sinh!", "error");
+                return;
+            }
+            
+            document.getElementById('studentInfo').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            // Update config
+            if (window.elementSdk) {
+                window.elementSdk.setConfig({
+                    student_name: studentName,
+                    student_class: studentClass
+                });
+            }
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('questionText').textContent = `Câu ${currentQuestion + 1}: ${question.question}`;
+            
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+            
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'w-full p-4 text-left bg-gray-50 hover:bg-blue-50 rounded-xl border-2 border-gray-200 hover:border-blue-300 transition-all duration-300 font-medium';
+                button.textContent = `${String.fromCharCode(65 + index)}. ${answer.text}`;
+                button.onclick = () => selectAnswer(answer.correct, button);
+                container.appendChild(button);
+            });
+            
+            updateProgress();
+            document.getElementById('wheelSection').classList.add('hidden');
+            document.getElementById('resultDisplay').classList.add('hidden');
+            document.getElementById('wrongAnswerNotification').classList.add('hidden');
+        }
+
+        function selectAnswer(isCorrect, button) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('#answersContainer button');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            if (isCorrect) {
+                button.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                score += 10;
+                correctCount++;
+                createConfetti();
+                showToast("Chính xác! 🎉", "success");
+                
+                setTimeout(() => {
+                    document.getElementById('wheelSection').classList.remove('hidden');
+                }, 1000);
+            } else {
+                button.classList.add('bg-red-100', 'border-red-500', 'text-red-800', 'shake');
+                showToast("Chưa đúng! Thử lại nhé! 😊", "error");
+                
+                setTimeout(() => {
+                    showWrongAnswerNotification();
+                }, 1000);
+            }
+            
+            updateScore();
+        }
+
+        function showWrongAnswerNotification() {
+            document.getElementById('questionCard').classList.add('hidden');
+            document.getElementById('wrongAnswerNotification').classList.remove('hidden');
+        }
+
+        function continueToNextQuestion() {
+            document.getElementById('wrongAnswerNotification').classList.add('hidden');
+            document.getElementById('questionCard').classList.remove('hidden');
+            nextQuestion();
+        }
+
+        function spinWheel() {
+            const wheel = document.getElementById('wheel');
+            const spinButton = document.getElementById('spinButton');
+            
+            spinButton.disabled = true;
+            spinButton.textContent = "🎡 Đang quay...";
+            
+            // Random rotation (multiple full rotations + random position)
+            const randomRotation = 1440 + Math.random() * 360;
+            wheel.style.transform = `rotate(${randomRotation}deg)`;
+            wheel.classList.add('spin-animation');
+            
+            setTimeout(() => {
+                const finalRotation = randomRotation % 360;
+                const prizeIndex = Math.floor((360 - finalRotation + 45) / 90) % 4;
+                const prize = prizes[prizeIndex];
+                
+                score += prize.points;
+                updateScore();
+                
+                showWheelResult(prize);
+                
+                wheel.classList.remove('spin-animation');
+                spinButton.disabled = false;
+                spinButton.textContent = "🎡 Quay vòng may mắn";
+            }, 3000);
+        }
+
+        function showWheelResult(prize) {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div class="text-6xl mb-4">${prize.name.split(' ')[0]}</div>
+                <div class="text-2xl font-bold mb-2" style="color: ${prize.color}">${prize.name}</div>
+                <div class="text-lg text-gray-600">+${prize.points} điểm</div>
+            `;
+            
+            document.getElementById('resultDisplay').classList.remove('hidden');
+            document.getElementById('wheelSection').classList.add('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion >= questions.length) {
+                showCertificate();
+            } else {
+                showQuestion();
+            }
+        }
+
+        function showCertificate() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('certificateScreen').classList.remove('hidden');
+            
+            document.getElementById('certStudentName').textContent = studentName;
+            document.getElementById('certStudentClass').textContent = `Lớp: ${studentClass}`;
+            document.getElementById('finalScore').textContent = `${score}/250 điểm`;
+            
+            let comment = "";
+            let commentColor = "";
+            
+            if (score >= 200) {
+                comment = "🌟 XUẤT SẮC! 🌟";
+                commentColor = "text-yellow-500";
+            } else if (score >= 150) {
+                comment = "👏 GIỎI LẮM! 👏";
+                commentColor = "text-green-500";
+            } else if (score >= 100) {
+                comment = "😊 KHÁ TỐT! 😊";
+                commentColor = "text-blue-500";
+            } else {
+                comment = "💪 CẦN CỐ GẮNG HỠN! 💪";
+                commentColor = "text-orange-500";
+            }
+            
+            const commentElement = document.getElementById('scoreComment');
+            commentElement.textContent = comment;
+            commentElement.className = `text-xl font-bold ${commentColor}`;
+            
+            createConfetti();
+        }
+
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            correctCount = 0;
+            
+            document.getElementById('certificateScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            updateScore();
+            showQuestion();
+        }
+
+        function newStudent() {
+            currentQuestion = 0;
+            score = 0;
+            correctCount = 0;
+            studentName = "";
+            studentClass = "";
+            
+            document.getElementById('studentName').value = "";
+            document.getElementById('studentClass').value = "";
+            
+            document.getElementById('certificateScreen').classList.add('hidden');
+            document.getElementById('studentInfo').classList.remove('hidden');
+            
+            updateScore();
+        }
+
+        function updateScore() {
+            document.getElementById('currentScore').textContent = score;
+            document.getElementById('correctAnswers').textContent = correctCount;
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `Câu ${currentQuestion + 1}/${questions.length}`;
+        }
+
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#a55eea'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 50);
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-xl font-bold text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        function startContinuousFireworks() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#a55eea', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#ff9f43'];
+            
+            function createFirework() {
+                const firework = document.createElement('div');
+                firework.className = 'continuous-fireworks';
+                firework.style.left = Math.random() * 100 + '%';
+                firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                firework.style.animationDelay = Math.random() * 2 + 's';
+                firework.style.animationDuration = (3 + Math.random() * 2) + 's';
+                document.body.appendChild(firework);
+                
+                setTimeout(() => {
+                    if (firework.parentNode) {
+                        firework.remove();
+                    }
+                }, 5000);
+            }
+            
+            // Create initial fireworks
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => createFirework(), i * 200);
+            }
+            
+            // Continue creating fireworks
+            setInterval(() => {
+                createFirework();
+            }, 300);
+        }
+
+        // Element SDK integration
+        async function onConfigChange(config) {
+            const gameTitle = config.game_title || defaultConfig.game_title;
+            const studentNameValue = config.student_name || defaultConfig.student_name;
+            const studentClassValue = config.student_class || defaultConfig.student_class;
+            
+            document.getElementById('gameTitle').textContent = gameTitle;
+            
+            if (studentNameValue) {
+                document.getElementById('studentName').value = studentNameValue;
+                studentName = studentNameValue;
+            }
+            
+            if (studentClassValue) {
+                document.getElementById('studentClass').value = studentClassValue;
+                studentClass = studentClassValue;
+            }
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["game_title", config.game_title || defaultConfig.game_title],
+                ["student_name", config.student_name || defaultConfig.student_name],
+                ["student_class", config.student_class || defaultConfig.student_class]
+            ]);
+        }
+
+        // Initialize SDK
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        // Initialize game
+        updateScore();
+        
+        // Start continuous fireworks
+        startContinuousFireworks();
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9983e44776099cce',t:'MTc2MjA4OTIzMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

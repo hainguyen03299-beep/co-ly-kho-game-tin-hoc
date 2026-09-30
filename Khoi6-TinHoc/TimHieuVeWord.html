@@ -1,0 +1,325 @@
+!DOCTYPE html
+html lang=vi
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleChinh Phục Microsoft Wordtitle
+    script src=httpscdn.tailwindcss.comscript
+    link href=httpscdnjs.cloudflare.comajaxlibsfont-awesome6.0.0cssall.min.css rel=stylesheet
+    style
+        @import url('httpsfonts.googleapis.comcss2family=Quicksandwght@400;600;700&display=swap');
+
+        body {
+            font-family 'Quicksand', sans-serif;
+            background linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+            overflow-x hidden;
+            min-height 100vh;
+        }
+
+        .star {
+            position absolute;
+            color #fbbf24;
+            font-size 1.5rem;
+            pointer-events none;
+            animation fall linear infinite;
+            z-index 0;
+        }
+
+        @keyframes fall {
+            0% { transform translateY(-10vh) rotate(0deg); opacity 1; }
+            100% { transform translateY(100vh) rotate(360deg); opacity 0; }
+        }
+
+        .glass-card {
+            background rgba(255, 255, 255, 0.9);
+            backdrop-filter blur(10px);
+            border-radius 2rem;
+            border 4px solid #60a5fa;
+            box-shadow 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .option-btn {
+            transition all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border 2px solid transparent;
+        }
+
+        .option-btnhover {
+            transform scale(1.02);
+            background-color #eff6ff;
+            border-color #60a5fa;
+        }
+
+        .hidden { display none; }
+
+        .progress-bar {
+            transition width 0.3s ease;
+        }
+    style
+head
+body class=flex items-center justify-center p-4
+    div id=stars-containerdiv
+
+    !-- Màn hình chào mừng --
+    div id=screen-welcome class=glass-card p-8 w-full max-w-md text-center relative z-10
+        div class=mb-6
+            div class=w-20 h-20 bg-blue-500 rounded-2xl mx-auto flex items-center justify-center text-white text-4xl shadow-lg mb-4
+                i class=fa-solid fa-file-wordi
+            div
+            h1 class=text-2xl font-bold text-blue-800Chinh Phục MS Wordh1
+            p class=text-blue-600 mt-2Cùng ôn tập kiến thức thật vui nhé! 🌟p
+        div
+
+        div class=space-y-4
+            input type=text id=player-name placeholder=Nhập họ và tên của em... 
+                class=w-full px-4 py-3 rounded-xl border-2 border-blue-200 focusborder-blue-500 outline-none text-center font-semibold
+            button onclick=startGame() id=btn-start class=w-full py-4 bg-blue-600 hoverbg-blue-700 text-white font-bold rounded-xl shadow-lg transform activescale-95 transition
+                BẮT ĐẦU CHƠI 🚀
+            button
+        div
+        p class=mt-4 text-[10px] text-blue-400 italic text-center uppercase tracking-widestHệ thống đã trộn ngẫu nhiên 20 câu hỏip
+    div
+
+    !-- Màn hình chơi game --
+    div id=screen-game class=glass-card p-6 w-full max-w-2xl hidden relative z-10
+        div class=flex justify-between items-center mb-4
+            div class=text-blue-700 font-bold
+                i class=fa-solid fa-user mr-2ispan id=display-name...span
+            div
+            div class=bg-blue-100 px-4 py-1 rounded-full text-blue-700 font-bold border border-blue-300
+                i class=fa-solid fa-clock mr-2ispan id=timer0000span
+            div
+        div
+
+        div class=w-full bg-blue-100 h-3 rounded-full mb-6 overflow-hidden border border-blue-200
+            div id=progress-fill class=progress-bar bg-blue-500 h-full w-0div
+        div
+
+        div class=mb-8
+            div class=flex justify-between items-end mb-4 border-b border-blue-100 pb-2
+                span class=text-sm font-bold text-blue-400 uppercase tracking-widestĐang trả lờispan
+                span class=text-blue-800 font-bold text-lgCâu span id=current-q-index1span20span
+            div
+            h2 id=question-text class=text-xl font-bold text-gray-800 leading-relaxed min-h-[80px]
+                Đang tải câu hỏi...
+            h2
+        div
+
+        div id=options-container class=grid gap-3
+            !-- Đáp án sẽ render ở đây --
+        div
+    div
+
+    !-- Màn hình kết thúc --
+    div id=screen-result class=glass-card p-8 w-full max-w-md text-center hidden relative z-10
+        div class=text-6xl mb-4🏆div
+        h1 class=text-3xl font-bold text-blue-800 mb-2XUẤT SẮC!h1
+        p class=text-gray-600 mb-6Chúc mừng span id=final-name class=font-bold text-blue-600...span đã hoàn thành!p
+        
+        div class=grid grid-cols-2 gap-4 mb-8
+            div class=bg-blue-50 p-4 rounded-2xl
+                div class=text-sm text-blue-500 uppercase font-boldĐiểm sốdiv
+                div class=text-3xl font-bold text-blue-700span id=final-score0span10div
+            div
+            div class=bg-blue-50 p-4 rounded-2xl
+                div class=text-sm text-blue-500 uppercase font-boldThời giandiv
+                div class=text-3xl font-bold text-blue-700 id=final-time0000div
+            div
+        div
+
+        div class=bg-yellow-50 p-4 rounded-2xl mb-8 border border-yellow-200
+            p class=text-yellow-700 italicKiến thức của em về Microsoft Word thật tuyệt vời! Hãy tiếp tục phát huy nhé!p
+        div
+
+        button onclick=location.reload() class=w-full py-4 bg-green-500 hoverbg-green-600 text-white font-bold rounded-xl shadow-lg transform activescale-95 transition
+            CHƠI LẠI TỪ ĐẦU 🔄
+        button
+    div
+
+    !-- Audio Elements --
+    audio id=bg-music loop
+        source src=httpsassets.mixkit.comusicpreviewmixkit-sunny-day-28.mp3 type=audiompeg
+    audio
+    audio id=sfx-correct
+        source src=httpsassets.mixkit.cosfxpreviewmixkit-cute-level-up-bell-594.mp3 type=audiompeg
+    audio
+    audio id=sfx-wrong
+        source src=httpsassets.mixkit.cosfxpreviewmixkit-wrong-answer-fail-notification-946.mp3 type=audiompeg
+    audio
+
+    script
+         Kho đề câu hỏi (Giữ nguyên logic phân cấp ngầm nhưng không hiển thị ra ngoài)
+        const questionBank = [
+            { q Để in văn bản trong Word, ta sử dụng tổ hợp phím nào, a [Ctrl + P, Ctrl + S, Ctrl + C, Ctrl + V], c 0, l 1 },
+            { q Khi muốn tạo bảng có 4 cột và 5 dòng nhanh nhất, bạn nên, a [Chọn Insert → Table → 4x5, Vẽ bảng bằng Draw Table, Nhập dữ liệu rồi chuyển thành bảng, Copy bảng từ Excel], c 0, l 1 },
+            { q Để lưu văn bản với tên khác, ta chọn lệnh nào, a [File → Save As, File → Save, File → New, File → Open], c 0, l 1 },
+            { q Biểu tượng hình cái đĩa trên thanh công cụ dùng để làm gì, a [Lưu văn bản, In văn bản, Mở văn bản, Xóa văn bản], c 0, l 1 },
+            { q Phím tắt nào dùng để bôi đậm văn bản, a [Ctrl + B, Ctrl + I, Ctrl + U, Ctrl + E], c 0, l 1 },
+            { q Phím tắt nào dùng để căn đều hai bên đoạn văn, a [Ctrl + J, Ctrl + L, Ctrl + R, Ctrl + E], c 0, l 1 },
+            { q Để ngắt trang nhanh trong Word, ta nhấn tổ hợp phím, a [Ctrl + Enter, Shift + Enter, Alt + Enter, Tab + Enter], c 0, l 2 },
+            { q Muốn chèn một hình ảnh vào văn bản, ta chọn thẻ nào, a [Insert, Home, Layout, View], c 0, l 1 },
+            { q Để thay đổi hướng trang (dọcngang), ta vào thẻ nào, a [Layout, Home, Design, References], c 0, l 2 },
+            { q Công cụ Format Painter dùng để làm gì, a [Sao chép định dạng, Sao chép văn bản, Tô màu nền, Vẽ hình], c 0, l 2 },
+            { q Để tạo chữ cái lớn đầu dòng (Drop Cap), ta chọn thẻ, a [Insert, Home, Layout, Review], c 0, l 2 },
+            { q Muốn chia cột cho văn bản (dạng báo chí), ta dùng lệnh, a [Layout → Columns, Insert → Table, Home → Paragraph, Design → Columns], c 0, l 2 },
+            { q Tổ hợp phím Ctrl + [ dùng để làm gì, a [Giảm cỡ chữ, Tăng cỡ chữ, Đổi màu chữ, Căn lề trái], c 0, l 3 },
+            { q Để tìm kiếm và thay thế từ ngữ, ta dùng tổ hợp phím, a [Ctrl + H, Ctrl + F, Ctrl + G, Ctrl + K], c 0, l 2 },
+            { q Khi gõ văn bản, nếu thấy dấu gạch dưới màu đỏ, đó là gì, a [Kiểm tra lỗi chính tả, Lỗi định dạng, Lỗi font chữ, Dấu gạch chân], c 0, l 3 },
+            { q Để chèn ký tự đặc biệt (biểu tượng), ta dùng, a [Insert → Symbol, Insert → Equation, Home → Symbol, Layout → Symbol], c 0, l 1 },
+            { q Trong Word, phím F12 dùng để làm gì, a [Mở hộp thoại Save As, In văn bản, Lưu văn bản, Đóng văn bản], c 0, l 3 },
+            { q Để căn lề giữa cho đoạn văn, phím tắt là, a [Ctrl + E, Ctrl + M, Ctrl + G, Ctrl + C], c 0, l 1 },
+            { q Chức năng Page Border nằm trong thẻ nào (Word 2016+), a [Design, Home, Insert, Layout], c 0, l 2 },
+            { q Để gõ chỉ số dưới (ví dụ H2O), ta nhấn tổ hợp phím, a [Ctrl + =, Ctrl + Shift + =, Alt + =, Shift + =], c 0, l 3 },
+            { q Để gõ chỉ số trên (ví dụ X2), ta nhấn tổ hợp phím, a [Ctrl + Shift + =, Ctrl + =, Alt + =, Shift + =], c 0, l 3 },
+            { q Muốn tạo mục lục tự động, ta vào thẻ nào, a [References, Insert, Layout, Review], c 0, l 3 },
+            { q Để xóa một từ bên phải con trỏ văn bản, ta nhấn, a [Delete, Backspace, Space, Shift], c 0, l 1 },
+            { q Để chọn toàn bộ văn bản, phím tắt là, a [Ctrl + A, Ctrl + Z, Ctrl + X, Ctrl + S], c 0, l 1 },
+            { q Muốn kiểm tra số từ trong văn bản, ta nhìn ở đâu, a [Thanh trạng thái (Status Bar), Thanh tiêu đề, Thanh cuộn, Thanh Ribbon], c 0, l 2 },
+            { q Đuôi file mặc định của Word từ bản 2007 trở đi là, a [.docx, .doc, .txt, .pdf], c 0, l 1 },
+            { q Để chèn một bảng biểu từ Excel vào Word mà vẫn giữ liên kết dữ liệu, ta chọn, a [Paste Link, Paste Special, Paste as Picture, Copy-Paste thông thường], c 0, l 3 },
+            { q Phím tắt để tăng cỡ chữ nhanh là, a [Ctrl + ], Ctrl + [, Ctrl + Shift + , Cả A và C đều đúng], c 3, l 3 },
+            { q Để tạo đường kẻ ngang nhanh, ta có thể gõ 3 dấu gạch --- rồi nhấn, a [Enter, Space, Tab, Shift], c 0, l 3 },
+            { q Để xem văn bản trước khi in (Print Preview), ta nhấn, a [Ctrl + F2, Ctrl + F1, Ctrl + F3, Ctrl + F4], c 0, l 3 }
+        ];
+
+        let currentQuestions = [];
+        let currentIdx = 0;
+        let score = 0;
+        let timerInterval;
+        let seconds = 0;
+        let playerName = ;
+
+        function createStars() {
+            const container = document.getElementById('stars-container');
+            const icons = ['⭐', '✨', '☁️', '❄️'];
+            for (let i = 0; i  30; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random()  100 + 'vw';
+                star.style.animationDuration = (Math.random()  3 + 2) + 's';
+                star.style.animationDelay = Math.random()  5 + 's';
+                star.innerText = icons[Math.floor(Math.random()  icons.length)];
+                container.appendChild(star);
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i  0; i--) {
+                const j = Math.floor(Math.random()  (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateQuizSet() {
+            const level1 = shuffle(questionBank.filter(q = q.l === 1)).slice(0, 6);
+            const level2 = shuffle(questionBank.filter(q = q.l === 2)).slice(0, 6);
+            const level3 = shuffle(questionBank.filter(q = q.l === 3)).slice(0, 8);
+            return shuffle([...level1, ...level2, ...level3]);
+        }
+
+        function startGame() {
+            const input = document.getElementById('player-name');
+            if (!input.value.trim()) {
+                alert(Em hãy nhập tên của mình nhé!);
+                return;
+            }
+
+            playerName = input.value.trim();
+            document.getElementById('display-name').innerText = playerName;
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            
+            const bgMusic = document.getElementById('bg-music');
+            bgMusic.volume = 0.3;
+            bgMusic.play().catch(() = {});
+
+            currentQuestions = generateQuizSet();
+            currentIdx = 0;
+            score = 0;
+            seconds = 0;
+            
+            startTimer();
+            showQuestion();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() = {
+                seconds++;
+                const mins = Math.floor(seconds  60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}${secs}`;
+            }, 1000);
+        }
+
+        function showQuestion() {
+            const qData = currentQuestions[currentIdx];
+            document.getElementById('current-q-index').innerText = currentIdx + 1;
+            document.getElementById('question-text').innerText = qData.q;
+            document.getElementById('progress-fill').style.width = ((currentIdx  20)  100) + '%';
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            const correctText = qData.a[qData.c];
+            const shuffledOptions = shuffle([...qData.a]);
+
+            shuffledOptions.forEach(opt = {
+                const btn = document.createElement('button');
+                btn.className = option-btn w-full p-4 text-left rounded-xl bg-white shadow-sm border-2 border-blue-50 text-gray-700 font-semibold flex items-center;
+                btn.innerHTML = `span class=w-8 h-8 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center mr-3 shrink-0 text-smspan ${opt}`;
+                btn.onclick = () = checkAnswer(opt, correctText, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, correct, btn) {
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b = b.disabled = true);
+
+            if (selected === correct) {
+                score += 0.5;
+                btn.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+                btn.querySelector('span').classList.replace('bg-blue-100', 'bg-green-500');
+                btn.querySelector('span').classList.replace('text-blue-500', 'text-white');
+                btn.querySelector('span').innerHTML = 'i class=fa-solid fa-checki';
+                document.getElementById('sfx-correct').play();
+            } else {
+                btn.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+                btn.querySelector('span').classList.replace('bg-blue-100', 'bg-red-500');
+                btn.querySelector('span').classList.replace('text-blue-500', 'text-white');
+                btn.querySelector('span').innerHTML = 'i class=fa-solid fa-xmarki';
+                
+                allBtns.forEach(b = {
+                    if (b.innerText.trim().endsWith(correct)) {
+                        b.classList.add('bg-green-50', 'border-green-300');
+                    }
+                });
+                document.getElementById('sfx-wrong').play();
+            }
+
+            setTimeout(() = {
+                currentIdx++;
+                if (currentIdx  20) {
+                    showQuestion();
+                } else {
+                    endGame();
+                }
+            }, 1200);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+            
+            document.getElementById('final-name').innerText = playerName;
+            document.getElementById('final-score').innerText = score.toFixed(1);
+            document.getElementById('final-time').innerText = document.getElementById('timer').innerText;
+            
+            document.getElementById('bg-music').volume = 0.1;
+        }
+
+        window.onload = createStars;
+    script
+body
+html
