@@ -1,0 +1,1226 @@
+File mở đầu
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUSKING - Play Together Style Lobby</title>
+    <!-- Thư viện Three.js và các module cần thiết -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #fdf2f8; 
+            font-family: 'Quicksand', sans-serif;
+            user-select: none;
+        }
+
+        #background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 50%, #f472b6 100%);
+            z-index: -1;
+            opacity: 0.9;
+            transition: opacity 2s ease-in-out;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 100px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .start-btn {
+            pointer-events: auto;
+            background: linear-gradient(to right, #ff2d95, #ff71cd, #ff2d95);
+            background-size: 200% auto;
+            border: 4px solid #ffffff;
+            color: #ffffff;
+            padding: 15px 70px;
+            font-size: 32px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 60px;
+            box-shadow: 0 0 30px rgba(255, 45, 149, 0.6), inset 0 0 10px rgba(255,255,255,0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: floatBtn 3s ease-in-out infinite, pulseGlow 2s infinite alternate;
+            letter-spacing: 2px;
+        }
+
+        @keyframes floatBtn {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes pulseGlow {
+            from { box-shadow: 0 0 20px rgba(255, 45, 149, 0.4); }
+            to { box-shadow: 0 0 40px rgba(255, 45, 149, 0.8); }
+        }
+
+        .start-btn:hover {
+            transform: scale(1.1) translateY(-5px);
+            filter: brightness(1.1);
+        }
+
+        /* Modal nhập tên */
+        #name-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(219, 39, 119, 0.3);
+            z-index: 200;
+            text-align: center;
+            width: 350px;
+            border: 6px solid #fbcfe8;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: auto;
+        }
+
+        #name-modal.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #name-modal h2 {
+            color: #db2777;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        #name-input {
+            width: 80%;
+            padding: 12px 20px;
+            border-radius: 15px;
+            border: 2px solid #f472b6;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            color: #be185d;
+        }
+
+        #confirm-btn {
+            margin-top: 20px;
+            background: #db2777;
+            color: white;
+            border: none;
+            padding: 10px 40px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #confirm-btn:hover {
+            background: #9d174d;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(253, 242, 248, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            color: #db2777;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        #fade-out {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .loading-text {
+            font-size: 24px;
+            margin-top: 20px;
+            font-weight: bold;
+            animation: textPulse 1s infinite alternate;
+        }
+
+        @keyframes textPulse {
+            from { opacity: 0.6; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1.02); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="background-image"></div>
+    <div id="fade-out"></div>
+
+    <!-- Khung nhập tên tùy chỉnh -->
+    <div id="name-modal">
+        <h2>NHẬP TÊN CỦA BẠN</h2>
+        <input type="text" id="name-input" placeholder="Tên của bạn..." maxlength="15">
+        <br>
+        <button id="confirm-btn">XÁC NHẬN</button>
+    </div>
+
+    <div id="overlay">
+        <div style="font-size: 80px; filter: drop-shadow(0 0 10px #f472b6);">🎵🏝️✨</div>
+        <div class="loading-text">NHẤN ĐỂ MỞ NHẠC VÀ BẮT ĐẦU</div>
+    </div>
+
+    <div id="ui-layer">
+        <button class="start-btn" id="start-game">VÀO TRÒ CHƠI</button>
+    </div>
+
+    <script>
+        let scene, camera, renderer, clock;
+        let mainGroup = new THREE.Group();
+        let candyGroup = new THREE.Group();
+        let starRingGroup = new THREE.Group();
+        let bearGroup = new THREE.Group();
+        let bottomStarsGroup = new THREE.Group();
+        let noteGroup = new THREE.Group();
+        let particles = null;
+        let titleMesh;
+        let explosionTriggered = false;
+        let suctionFactor = 0;
+        let userName = ""; 
+        
+        const loader = new THREE.FontLoader();
+        const listener = new THREE.AudioListener();
+        const sound = new THREE.Audio(listener);
+        const audioLoader = new THREE.AudioLoader();
+
+        // Đường dẫn game cần đến
+        const TARGET_URL = "https://gemini.google.com/share/378355b44d6c";
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0xfdf2f8, 0.015);
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 13;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setClearColor(0x000000, 0); 
+            document.body.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            scene.add(new THREE.AmbientLight(0xfff1f2, 1.2)); 
+            const mainLight = new THREE.PointLight(0xffffff, 1.5, 50);
+            mainLight.position.set(0, 5, 10);
+            scene.add(mainLight);
+
+            loader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+                const textGeo = new THREE.TextGeometry('EDUSKING', {
+                    font: font,
+                    size: 2.2,
+                    height: 0.8,
+                    curveSegments: 24,
+                    bevelEnabled: true,
+                    bevelThickness: 0.15,
+                    bevelSize: 0.1
+                });
+                textGeo.center();
+                
+                const textMat = new THREE.MeshPhongMaterial({ 
+                    color: 0xffffff,
+                    emissive: 0xff1493,
+                    emissiveIntensity: 0.6,
+                    shininess: 150
+                });
+                
+                titleMesh = new THREE.Mesh(textGeo, textMat);
+                titleMesh.position.y = 1.8;
+                mainGroup.add(titleMesh);
+
+                createTitleHalo();
+                createStarsAroundTitle();
+                createBottomStars();
+                createMusicNotes();
+            });
+
+            createCornerBears();
+            createCandies();
+            
+            scene.add(mainGroup);
+            scene.add(candyGroup);
+            scene.add(starRingGroup);
+            scene.add(bearGroup);
+            scene.add(bottomStarsGroup);
+            scene.add(noteGroup);
+
+            window.addEventListener('resize', onWindowResize, false);
+            
+            // Bắt đầu nhạc
+            document.getElementById('overlay').addEventListener('click', () => {
+                document.getElementById('overlay').style.display = 'none';
+                playPlayTogetherMusic();
+            });
+
+            // Mở khung nhập tên
+            document.getElementById('start-game').addEventListener('click', function() {
+                if (explosionTriggered) return;
+                document.getElementById('name-modal').classList.add('active');
+                document.getElementById('name-input').focus();
+            });
+
+            // Xử lý xác nhận
+            document.getElementById('confirm-btn').addEventListener('click', function() {
+                const input = document.getElementById('name-input');
+                const val = input.value.trim();
+                if (val !== "") {
+                    userName = val;
+                    // Đóng modal ngay lập tức
+                    document.getElementById('name-modal').classList.remove('active');
+                    // Ẩn nút vào game
+                    document.getElementById('start-game').style.display = 'none';
+                    
+                    // Kích hoạt hiệu ứng chuyển cảnh
+                    startExplosion();
+                    document.getElementById('fade-out').style.opacity = '1';
+                    
+                    // Chuyển hướng sau khi hiệu ứng hố đen hoàn tất
+                    setTimeout(() => {
+                        // Thử nghiệm dùng top.location hoặc window.location
+                        try {
+                            window.top.location.href = TARGET_URL;
+                        } catch(e) {
+                            window.location.assign(TARGET_URL);
+                        }
+                    }, 1800);
+                } else {
+                    input.style.borderColor = "red";
+                    setTimeout(() => input.style.borderColor = "#f472b6", 500);
+                }
+            });
+
+            document.getElementById('name-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('confirm-btn').click();
+                }
+            });
+
+            animate();
+        }
+
+        function createTitleHalo() {
+            const torusGeo = new THREE.TorusGeometry(6, 0.05, 16, 100);
+            const torusMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+            const halo = new THREE.Mesh(torusGeo, torusMat);
+            halo.position.y = 1.8;
+            halo.rotation.x = Math.PI / 2.5;
+            halo.name = "halo";
+            mainGroup.add(halo);
+        }
+
+        function createMusicNotes() {
+            const colors = [0xff1493, 0x00bfff, 0xffd700];
+            for (let i = 0; i < 8; i++) {
+                const group = new THREE.Group();
+                const mat = new THREE.MeshPhongMaterial({ color: colors[i % colors.length] });
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), mat);
+                const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.6), mat);
+                stem.position.set(0.15, 0.3, 0);
+                group.add(head, stem);
+                const angle = (i / 8) * Math.PI * 2;
+                group.position.set(Math.cos(angle) * 4, 1.8 + Math.sin(angle) * 2, 0);
+                group.userData = { angle: angle, radius: 4.5, floatSpeed: 0.5 + Math.random(), phase: Math.random() * Math.PI * 2 };
+                noteGroup.add(group);
+            }
+        }
+
+        function startExplosion() {
+            explosionTriggered = true;
+            if(!titleMesh) return;
+            const geometry = titleMesh.geometry;
+            const positionAttribute = geometry.attributes.position;
+            const particleCount = positionAttribute.count;
+            const pGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const velocities = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = positionAttribute.getX(i) + titleMesh.position.x;
+                positions[i * 3 + 1] = positionAttribute.getY(i) + titleMesh.position.y;
+                positions[i * 3 + 2] = positionAttribute.getZ(i) + titleMesh.position.z;
+                velocities[i * 3] = (Math.random() - 0.5) * 0.2;
+                velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.2;
+                velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+            }
+            pGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const pMaterial = new THREE.PointsMaterial({ color: 0xff69b4, size: 0.15, transparent: true, blending: THREE.AdditiveBlending });
+            particles = new THREE.Points(pGeometry, pMaterial);
+            particles.userData = { velocities: velocities };
+            scene.add(particles);
+            titleMesh.visible = false;
+            const halo = mainGroup.getObjectByName("halo");
+            if(halo) halo.visible = false;
+        }
+
+        function createBear(color) {
+            const bear = new THREE.Group();
+            const mat = new THREE.MeshPhongMaterial({ color: color });
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.8), mat);
+            bear.add(body);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.7, 0.7), mat);
+            head.position.y = 0.9;
+            bear.add(head);
+            return bear;
+        }
+
+        function createCornerBears() {
+            const colors = [0xff1493, 0xffd700, 0x00bfff, 0x00ff7f]; 
+            const positions = [{ x: -9, y: 6 }, { x: 9, y: 6 }, { x: -9, y: -6 }, { x: 9, y: -6 }];
+            positions.forEach((pos, i) => {
+                const bear = createBear(colors[i]);
+                bear.position.set(pos.x, pos.y, 0);
+                bear.userData = { originY: pos.y, danceOffset: Math.random() * Math.PI };
+                bearGroup.add(bear);
+            });
+        }
+
+        function createStarsAroundTitle() {
+            const starGeo = new THREE.OctahedronGeometry(0.18, 0);
+            for(let i = 0; i < 25; i++) {
+                const star = new THREE.Mesh(starGeo, new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0xffffff }));
+                const angle = (i / 25) * Math.PI * 2;
+                star.position.set(Math.cos(angle) * 7, 1.8, 0);
+                star.userData = { angle: angle, radius: 7, speed: 0.015 + Math.random() * 0.01 };
+                starRingGroup.add(star);
+            }
+        }
+
+        function createBottomStars() {
+            const starGeo = new THREE.OctahedronGeometry(0.3, 0);
+            const colors = [0xffffff, 0xffd700, 0xff69b4]; 
+            for(let i = 0; i < 12; i++) {
+                const mat = new THREE.MeshPhongMaterial({ color: colors[i % colors.length], emissive: colors[i % colors.length], emissiveIntensity: 0.4 });
+                const star = new THREE.Mesh(starGeo, mat);
+                star.position.set((i - 5.5) * 1.8, -3.5, 0);
+                star.userData = { originalY: -3.5, floatOffset: i * 0.6, blinkSpeed: 0.8 + Math.random() };
+                bottomStarsGroup.add(star);
+            }
+        }
+
+        function createCandies() {
+            const colors = [0xff69b4, 0xffd700, 0x87cefa]; 
+            for(let i = 0; i < 30; i++) {
+                const candy = new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 12), new THREE.MeshPhongMaterial({ color: colors[i%3] }));
+                candy.position.set((Math.random()-0.5)*30, (Math.random()-0.5)*20, (Math.random()-0.5)*15);
+                candyGroup.add(candy);
+            }
+        }
+
+        function playPlayTogetherMusic() {
+            audioLoader.load('https://cdn.pixabay.com/audio/2021/11/12/audio_03e054117b.mp3', function(buffer) {
+                sound.setBuffer(buffer);
+                sound.setLoop(true);
+                sound.setVolume(0.5);
+                sound.play();
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            if (titleMesh && !explosionTriggered) {
+                titleMesh.position.y = 1.8 + Math.sin(time * 1.5) * 0.2; 
+                titleMesh.rotation.y = Math.sin(time * 1.0) * 0.15;
+                const halo = mainGroup.getObjectByName("halo");
+                if(halo) {
+                    halo.rotation.z += 0.02;
+                    halo.material.opacity = 0.2 + Math.sin(time * 3) * 0.1;
+                }
+                noteGroup.children.forEach(note => {
+                    note.position.y += Math.sin(time * note.userData.floatSpeed + note.userData.phase) * 0.02;
+                    note.rotation.z = Math.sin(time * 2) * 0.3;
+                    note.scale.setScalar(1 + Math.sin(time * 4) * 0.1);
+                });
+            }
+
+            if (explosionTriggered) {
+                suctionFactor += 0.005;
+                if (camera.position.z > 2) {
+                    camera.position.z -= 0.18;
+                    camera.lookAt(0, 1.8, 0);
+                }
+                [candyGroup, bearGroup, starRingGroup, bottomStarsGroup, noteGroup].forEach(group => {
+                    group.children.forEach(obj => {
+                        const dx = 0 - obj.position.x, dy = 1.8 - obj.position.y, dz = 0 - obj.position.z;
+                        obj.position.x += dx * 0.06; obj.position.y += dy * 0.06; obj.position.z += dz * 0.06;
+                        obj.scale.multiplyScalar(0.94);
+                    });
+                });
+            }
+
+            if (particles) {
+                const posArr = particles.geometry.attributes.position.array;
+                const vels = particles.userData.velocities;
+                for (let i = 0; i < posArr.length / 3; i++) {
+                    const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2;
+                    const dx = 0 - posArr[ix], dy = 1.8 - posArr[iy], dz = 0 - posArr[iz];
+                    const force = 0.06 + suctionFactor;
+                    vels[ix] += dx * force; vels[iy] += dy * force; vels[iz] += dz * force;
+                    posArr[ix] += vels[ix]; posArr[iy] += vels[iy]; posArr[iz] += vels[iz];
+                    const angle = 0.12 + suctionFactor;
+                    const x = posArr[ix], z = posArr[iz];
+                    posArr[ix] = x * Math.cos(angle) - z * Math.sin(angle);
+                    posArr[iz] = x * Math.sin(angle) + z * Math.cos(angle);
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+                particles.material.opacity -= 0.005;
+                particles.material.size *= 0.98;
+            }
+
+            if (!explosionTriggered) {
+                bottomStarsGroup.children.forEach(star => {
+                    star.position.y = star.userData.originalY + Math.sin(time * 2 + star.userData.floatOffset) * 0.4;
+                    star.material.emissiveIntensity = 0.5 + Math.sin(time * star.userData.blinkSpeed) * 0.4;
+                });
+                bearGroup.children.forEach(bear => {
+                    bear.position.y = bear.userData.originY + Math.abs(Math.sin(time * 3 + bear.userData.danceOffset)) * 0.8;
+                    bear.rotation.y = Math.sin(time * 2.5) * 0.3;
+                });
+                starRingGroup.children.forEach(star => {
+                    star.userData.angle += star.userData.speed;
+                    star.position.x = Math.cos(star.userData.angle) * star.userData.radius;
+                    star.position.z = Math.sin(star.userData.angle) * star.userData.radius;
+                    star.rotation.x += 0.08;
+                });
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
+File game
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vương Quốc Trí Tuệ 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #87CEEB; touch-action: none; user-select: none; }
+        
+        /* Start Screen */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000; color: white; text-align: center;
+        }
+        #start-screen h1 { font-size: 3rem; color: gold; text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 10px; }
+        #start-btn {
+            padding: 15px 40px; font-size: 1.5rem; font-weight: bold; color: #1e3c72;
+            background: gold; border: none; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s; margin-top: 30px;
+        }
+        #start-btn:active { transform: scale(0.95); }
+
+        /* In-Game UI */
+        #game-ui { display: none; pointer-events: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        
+        #instructions {
+            position: absolute; top: 15px; left: 15px; color: #fff;
+            background: rgba(0, 0, 0, 0.6); padding: 12px; border-radius: 12px;
+            font-size: 0.85em; backdrop-filter: blur(5px); pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.2); transition: 0.3s;
+        }
+        #instructions.minimized .content { display: none; }
+        #toggle-btn {
+            position: absolute; top: 5px; right: 5px; cursor: pointer;
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            border-radius: 5px; padding: 2px 6px; font-size: 10px;
+        }
+
+        #status-display {
+            position: absolute; top: 15px; right: 15px; color: #fff;
+            background: rgba(0, 0, 0, 0.7); padding: 10px 20px; border-radius: 15px;
+            font-weight: bold; font-size: 1.1em; text-align: right; border: 2px solid gold;
+        }
+        .text-gold { color: gold; } .text-success { color: #00FF00; }
+
+        #music-control {
+            position: absolute; top: 90px; right: 15px; color: #fff;
+            background: rgba(0, 0, 0, 0.7); padding: 10px; border-radius: 15px;
+            display: flex; flex-direction: column; align-items: center; pointer-events: auto;
+        }
+        #volume-slider { width: 80px; }
+
+        #interaction-prompt {
+            position: absolute; bottom: 130px; left: 50%; transform: translateX(-50%);
+            color: #fff; background: rgba(0, 150, 255, 0.9); padding: 10px 30px;
+            border-radius: 30px; font-weight: bold; display: none;
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.8); font-size: 1.1em;
+        }
+
+        #crosshair {
+            position: absolute; top: 50%; left: 50%; width: 4px; height: 4px;
+            background: white; border-radius: 50%; transform: translate(-50%, -50%);
+            box-shadow: 0 0 4px black; opacity: 0.7;
+        }
+
+        #toast {
+            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 10px 25px; border-radius: 10px;
+            display: none; border: 1px solid gold; font-weight: bold; text-align: center;
+        }
+
+        /* Mobile Controls */
+        #joystick-container {
+            position: absolute; bottom: 30px; left: 30px; width: 130px; height: 130px;
+            background: rgba(255, 255, 255, 0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+            display: none; pointer-events: auto; touch-action: none;
+        }
+        #joystick-knob {
+            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.6); border-radius: 50%; transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(0,0,0,0.3); pointer-events: none;
+        }
+        #action-button {
+            position: absolute; bottom: 40px; right: 40px; width: 80px; height: 80px;
+            background: rgba(0, 150, 255, 0.7); border-radius: 50%; display: none; 
+            align-items: center; justify-content: center; color: white; font-weight: bold; 
+            font-size: 2em; border: 3px solid rgba(255,255,255,0.8); pointer-events: auto;
+        }
+        #action-button:active { background: rgba(0, 100, 200, 0.9); transform: scale(0.95); }
+
+        /* Modals */
+        .modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(20, 25, 30, 0.95); color: white; padding: 25px;
+            border-radius: 15px; border: 3px solid gold; display: none; z-index: 200; 
+            width: 90%; max-width: 450px; max-height: 85vh; overflow-y: auto; pointer-events: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .modal h2 { margin-top: 0; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
+        .quiz-btn, .shop-btn {
+            display: block; width: 100%; padding: 15px; margin: 10px 0; font-size: 1em;
+            background: #2a3644; color: white; border: 1px solid #4a5c70; border-radius: 8px; cursor: pointer; transition: 0.2s;
+        }
+        .quiz-btn:hover, .shop-btn:hover { background: #3b4d61; border-color: gold; }
+        .shop-btn { font-weight: bold; background: #1a2a3a; }
+        .shop-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #333; color: gray; }
+        .close-btn {
+            display: block; width: 100%; padding: 12px; margin-top: 20px; font-weight: bold;
+            background: #800; color: white; border: none; border-radius: 8px; cursor: pointer;
+        }
+        .close-btn:hover { background: #a00; }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #333; }
+
+        /* Win Screen */
+        #win-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); color: gold; display: none; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 300; text-align: center; pointer-events: auto;
+        }
+        .firework { position: absolute; width: 5px; height: 5px; border-radius: 50%; animation: explode 1s ease-out infinite; }
+        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(30); opacity: 0; } }
+
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- START SCREEN -->
+    <div id="start-screen">
+        <h1>VƯƠNG QUỐC TRÍ TUỆ</h1>
+        <p style="font-size: 1.2rem; max-width: 600px; padding: 0 20px; line-height: 1.5;">
+            Nhiệm vụ của bạn: Tìm Nhà Vua để giải đố kiếm tiền.<br>
+            Mua đồ tại Siêu thị để trang trí hoàn thiện Ngôi Nhà của bạn!<br>
+            (Hoàn thành nội thất để chiến thắng)
+        </p>
+        <button id="start-btn">BẮT ĐẦU CHƠI</button>
+    </div>
+
+    <!-- GAME UI -->
+    <div id="game-ui">
+        <div id="instructions">
+            <button id="toggle-btn">Thu nhỏ</button>
+            <strong style="color: gold;">Bản đồ:</strong><br>
+            <div class="content">
+                🔴 NPC Đỏ: Nhà Vua (Trả lời câu hỏi)<br>
+                🔵 NPC Xanh: Siêu Thị (Mua đồ)<br>
+                🏠 Nhà của bạn: Nơi để nội thất<br>
+                <em>Mua đủ Giường, Sofa, Cây để THẮNG</em>
+            </div>
+        </div>
+
+        <div id="status-display">
+            Vàng: <span class="text-gold" id="money-text">0 xu</span><br>
+            Nội thất: <span class="text-success" id="furniture-text">0/3</span>
+        </div>
+
+        <div id="music-control">
+            <label>NHẠC NỀN</label>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.3">
+        </div>
+        
+        <div id="crosshair"></div>
+        <div id="interaction-prompt">Chạm nút 🔵 để tương tác</div>
+        <div id="toast"></div>
+
+        <!-- Mobile -->
+        <div id="joystick-container"><div id="joystick-knob"></div></div>
+        <div id="action-button">E</div>
+    </div>
+
+    <!-- QUIZ MODAL -->
+    <div id="quiz-modal" class="modal">
+        <h2 style="color: gold;">Nhà Vua Thử Thách</h2>
+        <p id="quiz-question" style="font-size: 1.1em; line-height: 1.4;"></p>
+        <div id="quiz-answers"></div>
+        <button class="close-btn" onclick="closeModals()">Tạm Biệt Bệ Hạ</button>
+    </div>
+
+    <!-- SHOP MODAL -->
+    <div id="shop-modal" class="modal">
+        <h2 style="color: #00FFFF;">Siêu Thị Thần Kỳ</h2>
+        <div id="shop-items">
+            <!-- Equipment & Pets -->
+            <div style="color: gold; font-weight: bold; border-bottom: 1px solid gold; margin-top: 10px;">TIỆN ÍCH & THÚ CƯNG</div>
+            <div class="shop-item">
+                <div><strong>👟 Giày Thần Tốc</strong><br><small>Tăng x2 Tốc độ</small></div>
+                <button class="shop-btn" style="width: 100px;" id="buy_speed" onclick="buyItem('speed', 100)">100 xu</button>
+            </div>
+            <div class="shop-item">
+                <div><strong>🦊 Cáo Nhỏ</strong><br><small>Thú cưng đi theo</small></div>
+                <button class="shop-btn" style="width: 100px;" id="buy_pet_fox" onclick="buyItem('pet_fox', 200)">200 xu</button>
+            </div>
+
+            <!-- Furniture (WIN CONDITION) -->
+            <div style="color: #4DB6AC; font-weight: bold; border-bottom: 1px solid #4DB6AC; margin-top: 20px;">NỘI THẤT (MỤC TIÊU)</div>
+            <div class="shop-item">
+                <div><strong>🛏️ Giường Êm Ái</strong><br><small>Giấc ngủ hoàng gia</small></div>
+                <button class="shop-btn" style="width: 100px;" id="buy_bed" onclick="buyItem('bed', 250)">250 xu</button>
+            </div>
+            <div class="shop-item">
+                <div><strong>🛋️ Ghế Sofa</strong><br><small>Sang trọng</small></div>
+                <button class="shop-btn" style="width: 100px;" id="buy_sofa" onclick="buyItem('sofa', 150)">150 xu</button>
+            </div>
+            <div class="shop-item">
+                <div><strong>🌳 Cây Cảnh</strong><br><small>Góc xanh mát</small></div>
+                <button class="shop-btn" style="width: 100px;" id="buy_plant" onclick="buyItem('plant', 100)">100 xu</button>
+            </div>
+        </div>
+        <button class="close-btn" onclick="closeModals()">Rời Cửa Hàng</button>
+    </div>
+
+    <!-- WIN SCREEN -->
+    <div id="win-screen">
+        <h1 style="font-size: 4em; text-shadow: 0 0 20px gold;">CHÚC MỪNG!</h1>
+        <p style="font-size: 1.5em; max-width: 600px;">Bạn đã dùng trí tuệ để kiếm tiền và xây dựng thành công một tổ ấm tuyệt đẹp trong Vương Quốc!</p>
+        <button onclick="location.reload()" style="padding: 15px 40px; font-size: 1.2rem; margin-top: 20px; border-radius: 30px; background: #00BCD4; color: white; border: none; font-weight: bold; cursor: pointer;">Chơi Lại</button>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const allQuestions = [
+            { q: "CPU là gì trong máy tính?", a: ["Màn hình hiển thị", "Bộ xử lý trung tâm", "Bộ nhớ lưu trữ", "Chuột máy tính"], correct: 1 },
+            { q: "Phần mềm nào sau đây là hệ điều hành?", a: ["Microsoft Word", "Windows 11", "Google Chrome", "Adobe Photoshop"], correct: 1 },
+            { q: "Phím tắt dùng để Dán (Paste) nội dung là?", a: ["Ctrl + C", "Ctrl + X", "Ctrl + V", "Ctrl + P"], correct: 2 },
+            { q: "Trong Excel, hàm SUM dùng để làm gì?", a: ["Tính trung bình", "Tính tổng", "Tìm giá trị lớn nhất", "Đếm số ô"], correct: 1 },
+            { q: "Thiết bị nào sau đây dùng để XUẤT dữ liệu?", a: ["Bàn phím", "Chuột", "Microphone", "Máy in"], correct: 3 },
+            { q: "1 Gigabyte (GB) bằng khoảng bao nhiêu Megabyte (MB)?", a: ["10", "100", "1024", "10000"], correct: 2 },
+            { q: "Đâu là địa chỉ của một trang web tìm kiếm?", a: ["C:\\Windows", "google.com", "My Computer", "Control Panel"], correct: 1 },
+            { q: "Để gõ chữ in hoa toàn bộ, ta bật phím nào?", a: ["Shift", "Alt", "Caps Lock", "Tab"], correct: 2 },
+            { q: "Tên miền '.edu' thường dùng cho tổ chức nào?", a: ["Giáo dục", "Thương mại", "Chính phủ", "Quân đội"], correct: 0 },
+            { q: "Bộ nhớ RAM là bộ nhớ gì?", a: ["Chỉ đọc", "Lưu trữ lâu dài", "Truy cập ngẫu nhiên (tạm thời)", "Đĩa quang"], correct: 2 },
+            { q: "Trong Word, phím tắt Ctrl + B dùng để làm gì?", a: ["In nghiêng", "Gạch chân", "In đậm", "Căn giữa"], correct: 2 },
+            { q: "Mạng máy tính kết nối toàn cầu gọi là gì?", a: ["LAN", "WAN", "Internet", "Intranet"], correct: 2 },
+            { q: "Ký hiệu bắt đầu công thức trong Excel là?", a: ["+", "-", "=", "*"], correct: 2 },
+            { q: "Phần mềm diệt virus bảo vệ máy tính khỏi gì?", a: ["Mất điện", "Phần mềm độc hại (Malware)", "Hư hỏng phần cứng", "Bụi bẩn"], correct: 1 },
+            { q: "Thiết bị nào lưu trữ dữ liệu ngay cả khi tắt máy?", a: ["RAM", "CPU", "Ổ cứng (HDD/SSD)", "Card màn hình"], correct: 2 }
+        ];
+
+        let availableQuestions = [...allQuestions];
+        let money = 0;
+        let moveSpeed = 12;
+        let furnitureCount = 0;
+        let activePet = null;
+        let ownedItems = { bed: false, sofa: false, plant: false, speed: false, pet_fox: false };
+        
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // --- AUDIO SYSTEM ---
+        let audioCtx, masterGain, isMusicPlaying = false;
+
+        function initAudio() { 
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = 0.3; // Default volume
+                masterGain.connect(audioCtx.destination);
+                startBGM();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playSFX(freq, type = 'sine', duration = 0.2) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            if (type === 'sine' && duration > 0.2) { // Collect sound
+                osc.frequency.exponentialRampToValueAtTime(freq*1.5, audioCtx.currentTime + duration);
+            }
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(g); g.connect(masterGain);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function startBGM() {
+            if (isMusicPlaying) return;
+            isMusicPlaying = true;
+            const melody = [
+                {f: 392, d: 0.4}, {f: 523, d: 0.4}, {f: 659, d: 0.8}, {f: 587, d: 0.4}, {f: 523, d: 0.4},
+                {f: 493, d: 0.4}, {f: 523, d: 0.4}, {f: 587, d: 0.8}, {f: 392, d: 0.8},
+                {f: 349, d: 0.4}, {f: 440, d: 0.4}, {f: 523, d: 0.8}, {f: 493, d: 0.4}, {f: 440, d: 0.4},
+                {f: 392, d: 1.6}
+            ];
+            let idx = 0;
+            function playNote() {
+                if (!isMusicPlaying) return;
+                const note = melody[idx];
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = note.f;
+                g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + note.d);
+                osc.connect(g); g.connect(masterGain);
+                osc.start(); osc.stop(audioCtx.currentTime + note.d);
+                setTimeout(() => { idx = (idx + 1) % melody.length; playNote(); }, note.d * 1000);
+            }
+            playNote();
+        }
+
+        document.getElementById('volume-slider').addEventListener('input', e => {
+            if (masterGain) masterGain.gain.value = e.target.value;
+        });
+
+        // --- THREE.JS SETUP ---
+        let scene, camera, renderer, clock = new THREE.Clock();
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let velocity = new THREE.Vector3(), direction = new THREE.Vector3();
+        let yaw = 0, pitch = 0;
+        let interactiveObjects = [];
+        let nearbyObject = null;
+        let myHouseGroup = new THREE.Group();
+
+        function initGame() {
+            // Setup DOM
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            if (isMobile) {
+                document.getElementById('joystick-container').style.display = 'block';
+                document.getElementById('action-button').style.display = 'flex';
+                document.getElementById('instructions').style.display = 'none'; // Hide text on mobile to save space
+            }
+
+            initAudio();
+
+            // Setup 3D Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB);
+            scene.fog = new THREE.FogExp2(0x87CEEB, 0.012);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6); scene.add(ambient);
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+            sun.position.set(50, 100, 50);
+            sun.castShadow = true;
+            sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 300;
+            sun.shadow.camera.left = -50; sun.shadow.camera.right = 50;
+            sun.shadow.camera.top = 50; sun.shadow.camera.bottom = -50;
+            sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
+            scene.add(sun);
+
+            // Ground
+            const floorGeo = new THREE.PlaneGeometry(300, 300);
+            const floorMat = new THREE.MeshLambertMaterial({ color: 0x4CAF50 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Create World
+            buildWorld();
+            setupControls();
+            animate();
+        }
+
+        function buildWorld() {
+            // Paths
+            const pathMat = new THREE.MeshLambertMaterial({ color: 0x8D6E63 });
+            const path1 = new THREE.Mesh(new THREE.PlaneGeometry(4, 50), pathMat);
+            path1.rotation.x = -Math.PI/2; path1.position.set(0, 0.01, -15); scene.add(path1);
+            const path2 = new THREE.Mesh(new THREE.PlaneGeometry(50, 4), pathMat);
+            path2.rotation.x = -Math.PI/2; path2.position.set(15, 0.01, 0); scene.add(path2);
+
+            // Castle (King's Area)
+            const castle = new THREE.Group();
+            const cBody = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 16), new THREE.MeshLambertMaterial({ color: 0x9e9e9e }));
+            cBody.position.y = 6; cBody.castShadow = true; cBody.receiveShadow = true; castle.add(cBody);
+            castle.position.set(0, 0, -40); scene.add(castle);
+            createNPC(0, -28, 'king', 0xB71C1C, "Vua Kiến Thức");
+
+            // Shop (Supermarket)
+            const shop = new THREE.Group();
+            const sBody = new THREE.Mesh(new THREE.BoxGeometry(12, 8, 10), new THREE.MeshLambertMaterial({ color: 0x81D4FA }));
+            sBody.position.y = 4; sBody.castShadow = true; sBody.receiveShadow = true; shop.add(sBody);
+            const sSign = new THREE.Mesh(new THREE.BoxGeometry(8, 2, 0.5), new THREE.MeshLambertMaterial({ color: 0x0277BD }));
+            sSign.position.set(0, 9, 5); shop.add(sSign);
+            shop.position.set(40, 0, 0); scene.add(shop);
+            createNPC(30, 0, 'shopkeeper', 0x009688, "Chủ Shop");
+
+            // Player House
+            myHouseGroup.position.set(-30, 0, 0);
+            const hWalls = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 10), new THREE.MeshLambertMaterial({ color: 0xFFF59D, side: THREE.DoubleSide }));
+            hWalls.position.y = 3; hWalls.castShadow = true; hWalls.receiveShadow = true; myHouseGroup.add(hWalls);
+            const hRoof = new THREE.Mesh(new THREE.ConeGeometry(8, 4, 4), new THREE.MeshLambertMaterial({ color: 0xD84315 }));
+            hRoof.position.y = 8; hRoof.rotation.y = Math.PI/4; hRoof.castShadow = true; myHouseGroup.add(hRoof);
+            const hDoor = new THREE.Mesh(new THREE.PlaneGeometry(2, 3.5), new THREE.MeshLambertMaterial({ color: 0x4E342E }));
+            hDoor.position.set(0, 1.75, 5.01); myHouseGroup.add(hDoor);
+            scene.add(myHouseGroup);
+
+            // Trees
+            const treeGeoTrunk = new THREE.CylinderGeometry(0.3, 0.4, 2);
+            const treeGeoLeaves = new THREE.ConeGeometry(2, 4, 7);
+            const matTrunk = new THREE.MeshLambertMaterial({ color: 0x5D4037 });
+            const matLeaves = new THREE.MeshLambertMaterial({ color: 0x2E7D32 });
+            for (let i = 0; i < 150; i++) {
+                const x = (Math.random()-0.5)*250; const z = (Math.random()-0.5)*250;
+                // Avoid main areas
+                if (Math.abs(x) < 50 && Math.abs(z) < 50) continue;
+                
+                const t = new THREE.Group();
+                const trunk = new THREE.Mesh(treeGeoTrunk, matTrunk); trunk.position.y = 1; trunk.castShadow = true; t.add(trunk);
+                const leaves = new THREE.Mesh(treeGeoLeaves, matLeaves); leaves.position.y = 3.5; leaves.castShadow = true; t.add(leaves);
+                t.position.set(x, 0, z);
+                const s = 0.7 + Math.random()*0.6; t.scale.set(s,s,s);
+                scene.add(t);
+            }
+        }
+
+        function createNPC(x, z, type, color, name) {
+            const group = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.8), new THREE.MeshLambertMaterial({ color }));
+            body.position.y = 0.9; body.castShadow = true; group.add(body);
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.45), new THREE.MeshLambertMaterial({ color: 0xFFCCBC }));
+            head.position.y = 2.0; head.castShadow = true; group.add(head);
+            
+            if(type === 'king') {
+                const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 0.4), new THREE.MeshLambertMaterial({ color: 0xFFD700 }));
+                crown.position.y = 2.5; group.add(crown);
+            }
+            
+            group.position.set(x, 0, z); scene.add(group);
+            interactiveObjects.push({ mesh: group, type });
+        }
+
+        function addFurniture(type) {
+            if (type === 'bed') {
+                const bed = new THREE.Group();
+                const frame = new THREE.Mesh(new THREE.BoxGeometry(3, 0.6, 4), new THREE.MeshLambertMaterial({ color: 0x6D4C41 }));
+                const mat = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.4, 3.8), new THREE.MeshLambertMaterial({ color: 0xFAFAFA }));
+                mat.position.y = 0.4;
+                const pillow = new THREE.Mesh(new THREE.BoxGeometry(2, 0.3, 0.8), new THREE.MeshLambertMaterial({ color: 0x81D4FA }));
+                pillow.position.set(0, 0.65, -1.2);
+                bed.add(frame); bed.add(mat); bed.add(pillow);
+                bed.position.set(-3, 0.3, -2);
+                myHouseGroup.add(bed);
+            } else if (type === 'sofa') {
+                const sofa = new THREE.Group();
+                const base = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 1.5), new THREE.MeshLambertMaterial({ color: 0xE53935 }));
+                base.position.y = 0.5; sofa.add(base);
+                const back = new THREE.Mesh(new THREE.BoxGeometry(4, 1.5, 0.5), new THREE.MeshLambertMaterial({ color: 0xE53935 }));
+                back.position.set(0, 1.25, -0.5); sofa.add(back);
+                sofa.position.set(2, 0, 2); sofa.rotation.y = -Math.PI/4;
+                myHouseGroup.add(sofa);
+            } else if (type === 'plant') {
+                const p = new THREE.Group();
+                const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 0.8), new THREE.MeshLambertMaterial({ color: 0xFAFAFA }));
+                pot.position.y = 0.4; p.add(pot);
+                const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.8), new THREE.MeshLambertMaterial({ color: 0x43A047 }));
+                leaf.position.y = 1.2; p.add(leaf);
+                p.position.set(3.5, 0, -3.5);
+                myHouseGroup.add(p);
+            }
+        }
+
+        function createPet() {
+            const p = new THREE.Group();
+            const b = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.7), new THREE.MeshLambertMaterial({ color: 0xFF9800 }));
+            const h = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), new THREE.MeshLambertMaterial({ color: 0xFF9800 }));
+            h.position.set(0, 0.4, 0.3); p.add(b); p.add(h);
+            activePet = p; scene.add(activePet);
+        }
+
+        // --- CONTROLS ---
+        function setupControls() {
+            // Keyboard
+            document.addEventListener('keydown', e => {
+                if(e.code==='KeyW') moveForward=true; if(e.code==='KeyS') moveBackward=true;
+                if(e.code==='KeyA') moveLeft=true; if(e.code==='KeyD') moveRight=true;
+                if(e.code==='KeyE') interact();
+            });
+            document.addEventListener('keyup', e => {
+                if(e.code==='KeyW') moveForward=false; if(e.code==='KeyS') moveBackward=false;
+                if(e.code==='KeyA') moveLeft=false; if(e.code==='KeyD') moveRight=false;
+            });
+
+            // Mouse Look
+            document.addEventListener('mousemove', e => {
+                if (document.pointerLockElement) {
+                    yaw -= e.movementX * 0.002;
+                    pitch -= e.movementY * 0.002;
+                    pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch));
+                }
+            });
+            renderer.domElement.onclick = () => { if(!isMobile) document.body.requestPointerLock(); };
+
+            // Touch Look
+            let isRotating = false, lastX, lastY;
+            document.addEventListener('touchstart', e => {
+                if (e.target.tagName==='BUTTON' || e.target.closest('.modal') || e.target.closest('#joystick-container') || e.target.id==='action-button' || e.target.id==='volume-slider') return;
+                isRotating = true; lastX = e.touches.pageX; lastY = e.touches.pageY;
+            });
+            document.addEventListener('touchmove', e => {
+                if (!isRotating) return;
+                yaw -= (e.touches.pageX - lastX) * 0.006;
+                pitch -= (e.touches.pageY - lastY) * 0.006;
+                pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch));
+                lastX = e.touches.pageX; lastY = e.touches.pageY;
+            });
+            document.addEventListener('touchend', () => isRotating=false);
+
+            // Joystick
+            const joy = document.getElementById('joystick-container');
+            const knob = document.getElementById('joystick-knob');
+            joy.addEventListener('touchmove', e => {
+                e.preventDefault();
+                const r = joy.getBoundingClientRect();
+                const dx = e.touches.clientX - (r.left + r.width/2);
+                const dy = e.touches.clientY - (r.top + r.height/2);
+                const dist = Math.min(40, Math.sqrt(dx*dx + dy*dy));
+                const angle = Math.atan2(dy, dx);
+                knob.style.transform = `translate(calc(-50% + ${Math.cos(angle)*dist}px), calc(-50% + ${Math.sin(angle)*dist}px))`;
+                
+                moveForward = dy < -10; moveBackward = dy > 10;
+                moveLeft = dx < -10; moveRight = dx > 10;
+            }, {passive: false});
+            joy.addEventListener('touchend', () => {
+                knob.style.transform = 'translate(-50%, -50%)';
+                moveForward = moveBackward = moveLeft = moveRight = false;
+            });
+
+            document.getElementById('action-button').addEventListener('touchstart', e => { e.preventDefault(); interact(); });
+            document.getElementById('toggle-btn').addEventListener('click', () => document.getElementById('instructions').classList.toggle('minimized'));
+        }
+
+        // --- GAME LOGIC ---
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display='none', 2500);
+        }
+
+        function interact() {
+            if (!nearbyObject) return;
+            if (nearbyObject.type === 'king') openQuiz();
+            if (nearbyObject.type === 'shopkeeper') {
+                document.getElementById('shop-modal').style.display = 'block';
+                document.exitPointerLock();
+            }
+        }
+
+        function openQuiz() {
+            document.exitPointerLock();
+            if (availableQuestions.length === 0) availableQuestions = [...allQuestions];
+            const idx = Math.floor(Math.random() * availableQuestions.length);
+            const q = availableQuestions[idx];
+            document.getElementById('quiz-question').innerText = q.q;
+            const container = document.getElementById('quiz-answers');
+            container.innerHTML = '';
+            q.a.forEach((text, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-btn'; btn.innerText = `${String.fromCharCode(65+i)}. ${text}`;
+                btn.onclick = () => {
+                    if (i === q.correct) {
+                        money += 50; playSFX(880, 'sine', 0.4); showToast("Nhà Vua: Khá lắm! Nhận 50 xu.");
+                        availableQuestions.splice(idx, 1);
+                    } else { playSFX(150, 'sawtooth'); showToast("Nhà Vua: Sai rồi! Đồ ngốc."); }
+                    updateUI(); closeModals();
+                };
+                container.appendChild(btn);
+            });
+            document.getElementById('quiz-modal').style.display = 'block';
+        }
+
+        function buyItem(type, cost) {
+            if (ownedItems[type]) return;
+            if (money >= cost) {
+                money -= cost;
+                ownedItems[type] = true;
+                playSoundBuy();
+                
+                const btn = document.getElementById('buy_' + type);
+                btn.innerText = "ĐÃ MUA"; btn.disabled = true;
+
+                if (type === 'speed') { moveSpeed = 22; showToast("Tốc độ x2!"); }
+                else if (type === 'pet_fox') { createPet(); showToast("Đã nhận Thú Cưng!"); }
+                else {
+                    addFurniture(type);
+                    furnitureCount++;
+                    showToast("Đồ đã chuyển về nhà!");
+                    if (furnitureCount >= 3) {
+                        setTimeout(triggerWin, 1000);
+                    }
+                }
+                updateUI();
+            } else { playSFX(150, 'square'); showToast("Chủ Shop: Không đủ tiền đâu!"); }
+        }
+
+        function playSoundBuy() { playSFX(1000, 'square', 0.1); setTimeout(() => playSFX(1500, 'square', 0.2), 100); }
+
+        function closeModals() { 
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
+            if(!isMobile) document.body.requestPointerLock();
+        }
+
+        function updateUI() {
+            document.getElementById('money-text').innerText = `${money} xu`;
+            document.getElementById('furniture-text').innerText = `${furnitureCount}/3`;
+        }
+
+        function triggerWin() {
+            closeModals();
+            document.exitPointerLock();
+            document.getElementById('win-screen').style.display = 'flex';
+            playSFX(600, 'sine', 0.5); setTimeout(() => playSFX(800, 'sine', 1), 500);
+        }
+
+        // --- MAIN LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1); // Prevent huge jumps
+            const time = clock.getElapsedTime();
+
+            camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+            
+            direction.set(Number(moveRight) - Number(moveLeft), 0, Number(moveForward) - Number(moveBackward));
+            if (direction.length() > 0) {
+                direction.normalize();
+                const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                const side = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+                velocity.set(0,0,0);
+                velocity.addScaledVector(forward, direction.z * moveSpeed);
+                velocity.addScaledVector(side, direction.x * moveSpeed);
+                
+                // Collision (Simple bounds)
+                const nx = camera.position.x + velocity.x * delta;
+                const nz = camera.position.z + velocity.z * delta;
+                if(nx > -140 && nx < 140) camera.position.x = nx;
+                if(nz > -140 && nz < 140) camera.position.z = nz;
+                
+                // Bobbing
+                camera.position.y = 1.5 + Math.sin(time * 15) * 0.05;
+            } else {
+                camera.position.y = 1.5;
+            }
+
+            if (activePet) {
+                const targetPos = camera.position.clone().add(new THREE.Vector3(1.5, -0.5, 1.5).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw));
+                activePet.position.lerp(targetPos, 0.05);
+                activePet.position.y += Math.sin(time * 5) * 0.02; // Float
+                activePet.rotation.y = yaw;
+            }
+
+            nearbyObject = null;
+            for (const obj of interactiveObjects) {
+                if (camera.position.distanceTo(obj.mesh.position) < 6) { nearbyObject = obj; break; }
+            }
+            
+            const prompt = document.getElementById('interaction-prompt');
+            if (nearbyObject) {
+                prompt.style.display = 'block';
+                prompt.innerText = nearbyObject.type === 'king' ? "Nhấn E: Hầu Vua" : "Nhấn E: Vào Siêu Thị";
+                if(isMobile) prompt.innerText = "Chạm 🔵: " + (nearbyObject.type === 'king' ? "Hầu Vua" : "Mua sắm");
+            } else {
+                prompt.style.display = 'none';
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Start Button Logic
+        document.getElementById('start-btn').addEventListener('click', initGame);
+        
+        window.addEventListener('resize', () => {
+            if(camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
+</body>
+</html>
