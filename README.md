@@ -9,4 +9,4 @@ Website học tập dành cho học sinh Trường Phổ thông Thực hành Sư
 - Kho game Tin học khối 8
 - Kho game Tin học khối 9
 
-Đây là bản riêng dành cho Cô Lý. Mã nguồn và đường dẫn nội bộ được tách khỏi website gốc của Cô Nguyên.
+Đây là website riêng dành cho Cô Lý. Mã nguồn và các đường dẫn nội bộ đã được tách riêng để vận hành độc lập.
